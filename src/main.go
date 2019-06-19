@@ -3,14 +3,14 @@ package main
 import (
     "fmt"
     "blockchain"
-    "transactions"
+    "transaction"
     "currency"
 )
 
 func main() {
-    transaction := transactions.Transaction{Credit: 0, Debit: 0}
+    transaction := transaction.Transaction{Credit: 0, Debit: 0}
     transaction.SetCredit(1.25, currency.USD)
-    transaction.SetDebit(-1.25, currency.USD)
+    transaction.SetDebit(1.25, currency.USD)
 
     block := blockchain.Block{ID: 1, Nonce: 1, Transaction: transaction}
     block.SetHash()

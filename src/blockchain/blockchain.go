@@ -1,5 +1,4 @@
-// Blockchain is a slice with a restricted interface.
-// It behaves like a singly linked list supporting read operations,
+// Blockchain is a singly linked list supporting read operations,
 // and only one write operation, append. Its nodes are of type Block.
 
 package blockchain
@@ -9,18 +8,17 @@ import (
     "strings"
     "time"
     "crypto/sha256"
-    "transactions"
+    "transaction"
 )
 
 type Block struct {
     ID, Nonce int
     Hash, PreviousHash string
     Timestamp string
-    Transaction transactions.Transaction
+    Transaction transaction.Transaction
 }
 
-// Concatenate properties of the passed-in block into a single string,
-// then Hash it and set the Hash to the block's Hash property
+// Sets a block's Hash property to the hash of its other properties
 func (b *Block) SetHash() {
     if b.PreviousHash == "" {
         b.PreviousHash = strings.Repeat("0", 64)
@@ -36,13 +34,14 @@ func (b *Block) SetTimestamp() {
     b.Timestamp = fmt.Sprintf(time.Now().Format(time.RFC3339))
 }
 
-// TODO: Blockchain slice-like interface
+// TODO: Need to actually implement a linked list, not try to use slice.
+// The point of a blockchain interface is to restrict
+// operation that can be done on the underlying slice.
+// It should only be possible to call these methods.
 // Blockchain is a slice that acts like a linked list
 // type Blockchain interface {
-//     // Slice methods
 //     Len() int
 //     Append(Block)
-//     // Custom, linked list method
 //     Tail() Block
 // }
 

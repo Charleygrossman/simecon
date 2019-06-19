@@ -2,7 +2,7 @@
 // For any transaction, exactly one of Credit or Debit must have a nonzero,
 // positive value.
 
-package transactions
+package transaction
 
 import (
     "fmt"
