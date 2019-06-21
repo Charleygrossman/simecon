@@ -1,6 +1,3 @@
-// Blockchain is a singly linked list supporting read operations,
-// and only one write operation, append. Its nodes are of type Block.
-
 package blockchain
 
 import (
@@ -8,60 +5,80 @@ import (
     "strings"
     "time"
     "crypto/sha256"
+    "errors"
+    "utils"
     "transaction"
+    "linkedlist"
 )
 
 type Block struct {
-    ID, Nonce int
-    Hash, PreviousHash string
+    ID int
+    Nonce int
+    Hash string
+    PrevHash string
     Timestamp string
-    Transaction transaction.Transaction
+    Transaction *transaction.Transaction
+}
+
+func (b *Block) String() string {
+    return utils.StringStruct(b)
 }
 
 // Sets a block's Hash property to the hash of its other properties
-func (b *Block) SetHash() {
-    if b.PreviousHash == "" {
-        b.PreviousHash = strings.Repeat("0", 64)
-    }
-    tmp := b.PreviousHash + b.Timestamp + fmt.Sprintf("%d", b.ID) +
+func (b *Block) setHash() {
+    tmp := b.PrevHash + b.Timestamp + fmt.Sprintf("%d", b.ID) +
         fmt.Sprintf("%d", b.Nonce) + b.Transaction.String()
     sum := sha256.Sum256([]byte(tmp))
 	Hash := fmt.Sprintf("%x", sum)
     b.Hash = Hash
 }
 
-func (b *Block) SetTimestamp() {
+func (b *Block) setTimestamp() {
     b.Timestamp = fmt.Sprintf(time.Now().Format(time.RFC3339))
 }
 
-// TODO: Need to actually implement a linked list, not try to use slice.
-// The point of a blockchain interface is to restrict
-// operation that can be done on the underlying slice.
-// It should only be possible to call these methods.
-// Blockchain is a slice that acts like a linked list
-// type Blockchain interface {
-//     Len() int
-//     Append(Block)
-//     Tail() Block
-// }
+func NewBlock(transaction *transaction.Transaction) *linkedlist.Node {
+    block := &Block{
+        ID: 1,
+        Nonce: 1,
+        Transaction: transaction,
+    }
+    block.setHash()
+    block.setTimestamp()
 
-type Blockchain struct {
-    Blocks []Block
+    node := &linkedlist.Node{
+        Prev: nil,
+        Next: nil,
+        Data: block,
+    }
+    return node
 }
 
-func (b *Blockchain) Len() int {
-    return len(b.Blocks)
-}
+func NewBlockchain() (*linkedlist.List, error) {
+    block := &Block{
+        ID: 1,
+        Nonce: 1,
+        Hash: strings.Repeat("0", 64),
+        PrevHash: "",
+        Transaction: nil,
+    }
+    block.setTimestamp()
 
-func (b *Blockchain) Tail() Block {
-    n := len(b.Blocks)
-    // TODO: Block default value of nil
-    // if n == 0 {
-    //     return nil
-    // }
-    return b.Blocks[n-1]
-}
+    node := &linkedlist.Node{
+        Prev: nil,
+        Next: nil,
+        Data: block,
+    }
 
-func (b *Blockchain) Append(block Block) {
-    b.Blocks = append(b.Blocks, block)
+    // TODO: How to type assertion with explicit initialization?
+    var list linkedlist.LinkedList, ok = &linkedlist.List{
+        Head: node,
+        Tail: node,
+    }
+    if ok {
+        return list, nil
+    } else {
+        // TODO
+        return nil, errors.New("Something went wrong")
+    }
 }

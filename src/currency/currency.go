@@ -1,11 +1,9 @@
-// Currency type with enumerated codes
-
 package currency
 
-type Currency int
+type Code int
 
-const (
-    USD Currency = iota
+const(
+    USD Code = iota + 1
     CNY
     EUR
     GBP

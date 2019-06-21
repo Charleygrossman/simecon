@@ -2,22 +2,33 @@ package main
 
 import (
     "fmt"
-    "blockchain"
+    "log"
     "transaction"
     "currency"
+    "blockchain"
 )
 
 func main() {
-    transaction := transaction.Transaction{Credit: 0, Debit: 0}
-    transaction.SetCredit(1.25, currency.USD)
-    transaction.SetDebit(1.25, currency.USD)
+    blockchain, err := blockchain.NewBlockchain()
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Println(blockchain.String())
 
-    block := blockchain.Block{ID: 1, Nonce: 1, Transaction: transaction}
-    block.SetHash()
-    block.SetTimestamp()
+    t, err := transaction.NewTransaction(3.14, transaction.CREDIT, currency.USD)
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Println(t.String())
 
-    blockchain := blockchain.Blockchain{Blocks: []blockchain.Block{block}}
+    block, err := blockchain.NewBlock(t1)
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Println(block.String())
 
-    fmt.Println(transaction.String())
-    fmt.Println(len(blockchain.Blocks))
+    blockchain.Append(block)
+
+    fmt.Println(blockchain.Len())
+    fmt.Println(blockchain.String())
 }
