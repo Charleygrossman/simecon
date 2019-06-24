@@ -5,7 +5,6 @@ import (
     "strings"
     "time"
     "crypto/sha256"
-    "errors"
     "utils"
     "transaction"
     "linkedlist"
@@ -54,7 +53,7 @@ func NewBlock(transaction *transaction.Transaction) *linkedlist.Node {
     return node
 }
 
-func NewBlockchain() (*linkedlist.List, error) {
+func NewBlockchain() linkedlist.LinkedList {
     block := &Block{
         ID: 1,
         Nonce: 1,
@@ -69,16 +68,10 @@ func NewBlockchain() (*linkedlist.List, error) {
         Next: nil,
         Data: block,
     }
-
-    // TODO: How to type assertion with explicit initialization?
-    var list linkedlist.LinkedList, ok = &linkedlist.List{
+    
+    var list linkedlist.LinkedList = &linkedlist.List{
         Head: node,
         Tail: node,
     }
-    if ok {
-        return list, nil
-    } else {
-        // TODO
-        return nil, errors.New("Something went wrong")
-    }
+    return list
 }

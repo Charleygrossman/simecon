@@ -9,10 +9,7 @@ import (
 )
 
 func main() {
-    blockchain, err := blockchain.NewBlockchain()
-    if err != nil {
-        log.Fatal(err)
-    }
+    blockchain := blockchain.NewBlockchain()
     fmt.Println(blockchain.String())
 
     t, err := transaction.NewTransaction(3.14, transaction.CREDIT, currency.USD)
@@ -21,7 +18,7 @@ func main() {
     }
     fmt.Println(t.String())
 
-    block, err := blockchain.NewBlock(t1)
+    block, err := blockchain.NewBlock(t)
     if err != nil {
         log.Fatal(err)
     }
