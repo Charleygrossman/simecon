@@ -1,9 +1,19 @@
 package linkedlist
 
+import (
+	"fmt"
+	"github.com/Charleygrossman/simecon/utils"
+	"strings"
+)
+
 type Node struct {
 	Prev *Node
 	Next *Node
 	Data interface{}
+}
+
+func (n *Node) String() string {
+	return utils.StringStruct(n)
 }
 
 type LinkedList interface {
@@ -33,21 +43,21 @@ func (L *List) Append(node *Node) {
 	if L.Head == nil {
 		L.Head = node
 	} else {
-        curr := L.Head
-        for curr.Next != nil {
-            curr = curr.Next
-        }
-        curr.Next = node
-    }
+		curr := L.Head
+		for curr.Next != nil {
+			curr = curr.Next
+		}
+		curr.Next = node
+	}
 }
 
 func (L *List) String() string {
-	return "WIP"
-	// TODO
-	// curr := L.Head
-	// for curr != nil {
-	// 	fmt.Printf("%v ->", curr.Data.String())
-	// 	curr = curr.Next
-	// }
-	// fmt.Println()
+	rep := []string{}
+	curr := L.Head
+	for curr != nil {
+		r := fmt.Sprintf("%v ->", curr.String())
+		rep = append(rep, r)
+		curr = curr.Next
+	}
+	return fmt.Sprintf(strings.Join(rep, ", "))
 }
