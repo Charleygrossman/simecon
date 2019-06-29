@@ -3,9 +3,9 @@ package main
 import (
     "fmt"
     "log"
-    "transaction"
-    "currency"
-    "blockchain"
+    "github.com/Charleygrossman/simecon/transaction"
+    "github.com/Charleygrossman/simecon/currency"
+    "github.com/Charleygrossman/simecon/blockchain"
 )
 
 func main() {

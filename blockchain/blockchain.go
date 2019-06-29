@@ -5,9 +5,9 @@ import (
     "strings"
     "time"
     "crypto/sha256"
-    "utils"
-    "transaction"
-    "linkedlist"
+    "github.com/Charleygrossman/simecon/utils"
+    "github.com/Charleygrossman/simecon/transaction"
+    "github.com/Charleygrossman/simecon/linkedlist"
 )
 
 type Block struct {
@@ -68,7 +68,7 @@ func NewBlockchain() linkedlist.LinkedList {
         Next: nil,
         Data: block,
     }
-    
+
     var list linkedlist.LinkedList = &linkedlist.List{
         Head: node,
         Tail: node,
