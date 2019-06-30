@@ -2,8 +2,8 @@ package transaction
 
 import (
 	"errors"
-	"github.com/Charleygrossman/simecon/currency"
-	"github.com/Charleygrossman/simecon/utils"
+	"simecon/currency"
+	"simecon/utils"
 )
 
 type Event int

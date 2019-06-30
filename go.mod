@@ -1,3 +1,3 @@
-module github.com/Charleygrossman/simecon
+module simecon
 
 go 1.12

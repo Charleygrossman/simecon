@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/Charleygrossman/simecon/blockchain"
-	"github.com/Charleygrossman/simecon/currency"
-	"github.com/Charleygrossman/simecon/transaction"
+	"simecon/blockchain"
+	"simecon/currency"
+	"simecon/transaction"
 	"log"
 )
 

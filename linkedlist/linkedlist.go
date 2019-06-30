@@ -2,7 +2,7 @@ package linkedlist
 
 import (
 	"fmt"
-	"github.com/Charleygrossman/simecon/utils"
+	"simecon/utils"
 	"strings"
 )
 

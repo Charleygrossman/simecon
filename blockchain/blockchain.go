@@ -3,9 +3,9 @@ package blockchain
 import (
 	"crypto/sha256"
 	"fmt"
-	"github.com/Charleygrossman/simecon/linkedlist"
-	"github.com/Charleygrossman/simecon/transaction"
-	"github.com/Charleygrossman/simecon/utils"
+	"simecon/linkedlist"
+	"simecon/transaction"
+	"simecon/utils"
 	"strings"
 	"time"
 )
