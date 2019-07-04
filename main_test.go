@@ -1,26 +1,26 @@
 package main
 
 import (
+	"log"
 	"simecon/blockchain"
 	"simecon/currency"
 	"simecon/transaction"
-	"log"
-    "testing"
+	"testing"
 )
 
-// Asserts a new Blockchain with one block appended has length 2.
+// TestLen asserts that a new Blockchain with one new Block appended has length 2.
 func TestLen(t *testing.T) {
-    want := 2
+	want := 2
 
-    bchain := blockchain.NewBlockchain()
-    trn, err := transaction.NewTransaction(3.14, transaction.CREDIT, currency.USD)
-    if err != nil {
-        log.Fatal(err)
-    }
-    block := blockchain.NewBlock(trn)
-    bchain.Append(block)
+	bchain := blockchain.NewBlockchain()
+	trn, err := transaction.NewTransaction(3.14, transaction.CREDIT, currency.USD)
+	if err != nil {
+		log.Fatal(err)
+	}
+	block := blockchain.NewBlock(trn)
+	bchain.Append(block)
 
-    if got := bchain.Len(); got != want {
-        t.Errorf("Blockchain.Len() = %v", got)
-    }
+	if got := bchain.Len(); got != want {
+		t.Errorf("Blockchain.Len() = %v", got)
+	}
 }

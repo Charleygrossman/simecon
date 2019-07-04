@@ -1,3 +1,4 @@
+// Package blockchain provides primitives needed to work with a basic blockchain.
 package blockchain
 
 import (
@@ -10,32 +11,44 @@ import (
 	"time"
 )
 
+// Block is the node of a blockchain. It's assigned to the Data interface of the
+// underlying LinkedList's Node struct.
 type Block struct {
-	ID          int
-	Nonce       int
-	Hash        string
-	PrevHash    string
-	Timestamp   string
+	// ID is the unique identifier of Block.
+	ID int
+	// Nonce is the "number used only once", incremented when mining.
+	Nonce int
+	// Hash is the unique, fixed-length hash of Block.
+	Hash string
+	// PrevHash is the Hash of the previous Block in the blockchain.
+	PrevHash string
+	// Timestamp is set at the time of Block's initialization.
+	Timestamp string
+	// Transaction records the Transaction stored in Block.
 	Transaction *transaction.Transaction
 }
 
+// String returns the string representation of Block.
 func (b *Block) String() string {
 	return utils.StringStruct(b)
 }
 
-// Sets a block's Hash property to the hash of its other properties
+// setHash sets Block's Hash field to the SHA256 hash of its other fields.
 func (b *Block) setHash() {
-	tmp := b.PrevHash + b.Timestamp + fmt.Sprintf("%d", b.ID) +
-		fmt.Sprintf("%d", b.Nonce) + b.Transaction.String()
+	tmp := fmt.Sprintf("%d", b.ID) + fmt.Sprintf("%d", b.Nonce) + b.PrevHash +
+		b.Timestamp + b.Transaction.String()
 	sum := sha256.Sum256([]byte(tmp))
 	Hash := fmt.Sprintf("%x", sum)
 	b.Hash = Hash
 }
 
+// setTimestamp sets the Timestamp field of Block to current local time in
+// yyyy-mm-ddThh:mm:ssZ format.
 func (b *Block) setTimestamp() {
 	b.Timestamp = fmt.Sprintf(time.Now().Format(time.RFC3339))
 }
 
+// NewBlock instantiates and returns a new Block with the provided Transaction.
 func NewBlock(transaction *transaction.Transaction) *linkedlist.Node {
 	block := &Block{
 		ID:          1,
@@ -53,6 +66,7 @@ func NewBlock(transaction *transaction.Transaction) *linkedlist.Node {
 	return node
 }
 
+// NewBlockchain instantiates and returns a new blockchain and provides it a genesis Block.
 func NewBlockchain() linkedlist.LinkedList {
 	block := &Block{
 		ID:          1,

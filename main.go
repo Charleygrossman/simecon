@@ -2,12 +2,15 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"simecon/blockchain"
 	"simecon/currency"
 	"simecon/transaction"
-	"log"
 )
 
+// main instantiates a new Blockchain, Transaction and corresponding Block,
+// then appends that Block to the Blockchain before printing its length and
+// string representation.
 func main() {
 	bchain := blockchain.NewBlockchain()
 	trn, err := transaction.NewTransaction(3.14, transaction.CREDIT, currency.USD)
