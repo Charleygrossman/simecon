@@ -1,7 +1,7 @@
-// Package currency provides primitives for representing world currencies.
+// Package currency provides primitives for representing world currencies
 package currency
 
-// Code represents a currency code as an int.
+// Code represents a currency code as an int
 type Code int
 
 const (

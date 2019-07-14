@@ -1,4 +1,5 @@
-// Package transaction provides primitives needed to work with financial transactions.
+// Package transaction provides primitives
+// needed to work with financial transactions
 package transaction
 
 import (
@@ -7,7 +8,7 @@ import (
 	"simecon/utils"
 )
 
-// Event represents a transactional event.
+// Event represents a transactional event
 type Event int
 
 const (
@@ -15,7 +16,7 @@ const (
 	DEBIT
 )
 
-// Transaction represents a financial transaction.
+// Transaction represents a financial transaction
 type Transaction struct {
 	// The credit amount of Transaction.
 	Credit float64
@@ -25,13 +26,13 @@ type Transaction struct {
 	Currency currency.Code
 }
 
-// String returns the string representation of Transaction.
+// String returns the string representation of Transaction
 func (t *Transaction) String() string {
 	return utils.StringStruct(t)
 }
 
-// NewTransaction instantiates and returns a new Transaction of the given
-// amount, Event and currency Code.
+// NewTransaction instantiates and returns a new Transaction
+// of the given amount, Event and currency Code.
 func NewTransaction(amount float64, event Event, currency currency.Code) (*Transaction, error) {
 	if amount <= 0 {
 		return nil, errors.New("amount must be nonzero positive")
