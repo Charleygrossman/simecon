@@ -18,11 +18,11 @@ const (
 
 // Transaction represents a financial transaction
 type Transaction struct {
-	// The credit amount of Transaction.
+	// The credit amount of Transaction
 	Credit float64
-	// The Debit amount of transaction.
+	// The debit amount of transaction
 	Debit float64
-	// The currency code of Transaction.
+	// The currency code of Transaction
 	Currency currency.Code
 }
 
@@ -32,7 +32,7 @@ func (t *Transaction) String() string {
 }
 
 // NewTransaction instantiates and returns a new Transaction
-// of the given amount, Event and currency Code.
+// of the given amount, Event and currency Code
 func NewTransaction(amount float64, event Event, currency currency.Code) (*Transaction, error) {
 	if amount <= 0 {
 		return nil, errors.New("amount must be nonzero positive")

@@ -12,14 +12,14 @@ import (
 
 // Block is the node of a Blockchain
 type Block struct {
-	// previous is a pointer to the previous Block in the Blockchain
-	previous *Block
 	// Previous is a hash pointer to the previous Block in the Blockchain
 	Previous string
 	// Timestamp is set at the time of Block's initialization
 	Timestamp string
 	// Transaction records the Transaction stored in Block
 	Transaction *transaction.Transaction
+	// previous is a pointer to the previous Block in the Blockchain
+	previous *Block
 }
 
 // String returns the string representation of Block
@@ -33,12 +33,12 @@ func (b *Block) setPrevious() {
 	if b.previous == nil {
 		p := b.previous
 		input := p.Timestamp + p.Transaction.String()
-		hash :=  fmt.Sprintf("%x", sha256.Sum256([]byte(input)))
+		hash := fmt.Sprintf("%x", sha256.Sum256([]byte(input)))
 		b.Previous = hash
 	}
 }
 
-// setTimestamp sets the Timestamp field of Block to current local time in
+// setTimestamp sets the Timestamp of Block to current local time in
 // yyyy-mm-ddThh:mm:ssZ format
 func (b *Block) setTimestamp() {
 	if b.Timestamp == "" {
@@ -49,8 +49,8 @@ func (b *Block) setTimestamp() {
 // NewBlock instantiates and returns a new Block with the provided Transaction
 func NewBlock(transaction *transaction.Transaction) *Block {
 	block := &Block{
-		previous := nil
-		Previous := "",
+		previous:    nil,
+		Previous:    "",
 		Transaction: transaction,
 	}
 	block.setTimestamp()
@@ -58,37 +58,40 @@ func NewBlock(transaction *transaction.Transaction) *Block {
 }
 
 // LinkedList represents a singly-linked, append-only linked list
-// with hash pointers to the previous node
 type LinkedList interface {
 	// Append appends a Node to the tail-end of LinkedList
-	Append(*Node)
+	Append(interface{})
 	// Len returns the length of LinkedList
 	Len() int
 	// String returns the string representation of LinkedList
 	String() string
 }
 
-// Blockchain represents and implementation of LinkedList
+// Blockchain represents an implementation of LinkedList
 type Blockchain struct {
-	// Head is the initial Block of Blockchain
-	Head *Block
-	// Tail is the final Block of Blockchain
-	Tail *Block
+	// head is the initial Block of Blockchain
+	head *Block
+	// tail is the final Block of Blockchain
+	tail *Block
 }
 
 func (B *Blockchain) Append(block *Block) {
-	if B.Head == nil {
-		B.Head = block
-	else {
-		tmp := B.Tail
-		B.Tail = block
+	if B.tail.previous == nil {
+		tmp := B.tail
+		B.tail = block
 		block.previous = tmp
+		block.Previous = strings.Repeat("0", 64)
+	} else {
+		tmp := B.tail
+		B.tail = block
+		block.previous = tmp
+		block.setPrevious()
 	}
 }
 
 func (B *Blockchain) Len() int {
 	count := 0
-	curr := L.Tail
+	curr := B.tail
 	for curr != nil {
 		count += 1
 		curr = curr.previous
@@ -98,7 +101,7 @@ func (B *Blockchain) Len() int {
 
 func (B *Blockchain) String() string {
 	rep := []string{}
-	curr := B.Tail
+	curr := B.tail
 	for curr != nil {
 		n := fmt.Sprintf("%v ->", curr.String())
 		rep = append(rep, n)
@@ -107,19 +110,19 @@ func (B *Blockchain) String() string {
 	return fmt.Sprintf(strings.Join(rep, ", "))
 }
 
-// NewBlockchain instantiates and returns a new blockchain
-// and provides it a genesis Block
-func NewBlockchain() Blockchain {
-	block := &Block{
-		previous : nil
-		Previous: strings.Repeat("0", 64),
+// NewBlockchain instantiates and returns a new Blockchain
+// and provides it with a genesis Block
+func NewBlockchain() *Blockchain {
+	gen := &Block{
+		previous:    nil,
+		Previous:    "",
 		Transaction: nil,
 	}
-	block.setTimestamp()
+	gen.setTimestamp()
 
 	blockchain := &Blockchain{
-		Head: nil,
-		Tail: nil,
+		head: gen,
+		tail: gen,
 	}
 	return blockchain
 }
