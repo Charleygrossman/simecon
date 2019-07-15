@@ -1,4 +1,4 @@
-// Package utils provides utility functions for general use.
+// Package utils provides utility functions for general use
 package utils
 
 import (
@@ -7,7 +7,8 @@ import (
 	"strings"
 )
 
-// StringStruct returns a oneline string representation of the provided interface.
+// StringStruct returns a oneline string representation
+// of the provided interface
 func StringStruct(t interface{}) string {
 	s := reflect.ValueOf(t).Elem()
 	typeOfT := s.Type()

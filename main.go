@@ -9,8 +9,7 @@ import (
 )
 
 // main instantiates a new Blockchain, Transaction and corresponding Block,
-// then appends that Block to the Blockchain before printing its length and
-// string representation.
+// then appends that Block to the Blockchain before printing its length
 func main() {
 	bchain := blockchain.NewBlockchain()
 	trn, err := transaction.NewTransaction(3.14, transaction.CREDIT, currency.USD)
@@ -20,5 +19,4 @@ func main() {
 	block := blockchain.NewBlock(trn)
 	bchain.Append(block)
 	fmt.Println(bchain.Len())
-	fmt.Println(bchain.String())
 }

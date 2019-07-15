@@ -8,7 +8,8 @@ import (
 	"testing"
 )
 
-// TestLen asserts that a new Blockchain with one new Block appended has length 2.
+// TestLen asserts that a new Blockchain with one new Block appended
+// has length 2
 func TestLen(t *testing.T) {
 	want := 2
 
