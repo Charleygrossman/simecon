@@ -1,7 +1,7 @@
 # tradesim
 Simple Go application to learn the language
 
-#### TODO
+##### TODO
 - [] Reflect on unexported members (utils.StringStruct)
 - [] Blockchain implements LinkedList
 - [] Merkle tree for Block data?
