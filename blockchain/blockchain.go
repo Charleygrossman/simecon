@@ -13,9 +13,9 @@ import (
 	"tradesim/utils"
 )
 
-// MAXINT64 is a pointer to the largest int64 value,
+// maxint64 is a pointer to the largest int64 value,
 // for use with crypto/rand.Int
-var MAXINT64 *big.Int = big.NewInt(int64(^uint64(0) >> 1))
+var maxint64 *big.Int = big.NewInt(int64(^uint64(0) >> 1))
 
 // Block is the node of a Blockchain
 type Block struct {
@@ -40,7 +40,7 @@ func (b *Block) String() string {
 func (b *Block) setPrevious() {
 	if b.previous == nil {
 		p := b.previous
-		nonce, err := rand.Int(rand.Reader, MAXINT64)
+		nonce, err := rand.Int(rand.Reader, maxint64)
 		if err != nil {
 			log.Fatal(err)
 		}

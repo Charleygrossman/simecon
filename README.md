@@ -1,4 +1,4 @@
-# trade-simulator
+# tradesim
 Simple Go application to learn the language
 
 #### TODO
