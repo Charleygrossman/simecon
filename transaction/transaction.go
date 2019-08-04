@@ -4,8 +4,8 @@ package transaction
 
 import (
 	"errors"
-	"simecon/currency"
-	"simecon/utils"
+	"tradesim/currency"
+	"tradesim/utils"
 )
 
 // Event represents a transactional event

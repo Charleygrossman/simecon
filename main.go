@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
-	"simecon/blockchain"
-	"simecon/currency"
-	"simecon/transaction"
+	"tradesim/blockchain"
+	"tradesim/currency"
+	"tradesim/transaction"
 )
 
 // main instantiates a new Blockchain, Transaction and corresponding Block,

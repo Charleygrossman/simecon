@@ -2,10 +2,10 @@ package main
 
 import (
 	"log"
-	"simecon/blockchain"
-	"simecon/currency"
-	"simecon/transaction"
 	"testing"
+	"tradesim/blockchain"
+	"tradesim/currency"
+	"tradesim/transaction"
 )
 
 // TestLen asserts that a new Blockchain with one new Block appended

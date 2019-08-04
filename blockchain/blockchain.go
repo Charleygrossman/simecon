@@ -2,13 +2,20 @@
 package blockchain
 
 import (
+	"crypto/rand"
 	"crypto/sha256"
 	"fmt"
-	"simecon/transaction"
-	"simecon/utils"
+	"log"
+	"math/big"
 	"strings"
 	"time"
+	"tradesim/transaction"
+	"tradesim/utils"
 )
+
+// MAXINT64 is a pointer to the largest int64 value,
+// for use with crypto/rand.Int
+var MAXINT64 *big.Int = big.NewInt(int64(^uint64(0) >> 1))
 
 // Block is the node of a Blockchain
 type Block struct {
@@ -28,11 +35,16 @@ func (b *Block) String() string {
 }
 
 // setPrevious sets Block's Previous hash pointer
-// to the hash of the previous Block's Timestamp and Transaction
+// to the hash of the previous Block's Timestamp and Transaction,
+// along with a high min-entropy nonce as a string
 func (b *Block) setPrevious() {
 	if b.previous == nil {
 		p := b.previous
-		input := p.Timestamp + p.Transaction.String()
+		nonce, err := rand.Int(rand.Reader, MAXINT64)
+		if err != nil {
+			log.Fatal(err)
+		}
+		input := p.Timestamp + p.Transaction.String() + nonce.String()
 		hash := fmt.Sprintf("%x", sha256.Sum256([]byte(input)))
 		b.Previous = hash
 	}
