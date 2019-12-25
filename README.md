@@ -1,23 +1,31 @@
 # tradesim
-Simple Go application to learn the language
+
+"**Trade** involves the transfer of goods or services from one person or entity
+to another, often in exchange for money. A *system* or network that allows
+trade is called a market."
+
+"A **simulation** is an approximate imitation of the operation or process of a
+*system*."
 
 #### TODO
-- [] Three "user" servers with inventories, that make trades with one another.
-These trades are accounted for by an overseeing accounting system/server,
-which also appends to the blockchain DB. When the new transaction is appended,
-three overseeing "entities" process and communicate.
+- [] Three *trader* services with inventories and capital that make trades with
+one another.
+- [] Trades are accounted for by an *accountant* service, which interfaces with
+the database.
+- [] When the database is updated, three *banker* services process and
+communicate with regard to transactions.
+- [] Bankers can also provide loans which update traders' inventories/capital.
+
+- [] Merkle tree for blockchain transactions
+  - [] Can store multiple transactions
+  - [] Hash pointers
+  - [] Compressed/encoded
+  - [] Some generic comparable
+  - [] Balanced
+  - [] Once a transaction is compressed and made comparable,
+    that encoding can be stored as a generic comparable key,
+    as part of a red-black binary search tree
+    with hash pointers for links.
 
 - [] Reflect on unexported members (utils.StringStruct)
 - [] Blockchain implements LinkedList
-- [] Merkle tree for Block Transaction data
-###### Merkle tree
-Wants of a BST merkle tree for Transactions:
-    - Can store multiple transactions
-    - Hash pointers
-    - Compressed/encoded
-    - Some generic comparable
-    - Balanced
-Once a transaction is compressed and made comparable,
-that encoding can be stored as a generic comparable key,
-as part of a red-black binary search tree
-with hash pointers for links.
