@@ -11,6 +11,12 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+# Environment variables
+.env
+
+# Binaries
+bin/
+
 # macOS
 .DS_Store
 
