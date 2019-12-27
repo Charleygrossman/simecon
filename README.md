@@ -1,5 +1,4 @@
 # tradesim
-
 "**Trade** involves the transfer of goods or services from one person or entity
 to another, often in exchange for money. A *system* or network that allows
 trade is called a market."
@@ -7,7 +6,10 @@ trade is called a market."
 "A **simulation** is an approximate imitation of the operation or process of a
 *system*."
 
-#### TODO
+##### Notes
+What are the processes, which drive markets, which cause *traders* to trade?
+
+##### Todo
 - [] Three *trader* services with inventories and capital that make trades with
 one another.
 - [] Trades are accounted for by an *accountant* service, which interfaces with
