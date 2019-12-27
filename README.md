@@ -7,7 +7,13 @@ trade is called a market."
 *system*."
 
 ##### Notes
-What are the processes, which drive markets, which cause *traders* to trade?
+Implementing *trader*, *accountant* and *banker* services outright is shortsighted
+and incomplete.
+What are the processes, which drive markets, which cause traders to trade?
+
+**Goal**: To understand and implement *processes* which drive the services.
+This begs the engineering question; What is the interface between a process
+and a service?
 
 ##### Todo
 - [] Three *trader* services with inventories and capital that make trades with
