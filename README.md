@@ -1,4 +1,4 @@
-# tradesim
+## tradesim
 "**Trade** involves the transfer of goods or services from one person or entity
 to another, often in exchange for money. A *system* or network that allows
 trade is called a market."
@@ -6,7 +6,7 @@ trade is called a market."
 "A **simulation** is an approximate imitation of the operation or process of a
 *system*."
 
-##### Notes
+### Notes
 Implementing *trader*, *accountant* and *banker* services outright is shortsighted
 and incomplete.
 What are the processes, which drive markets, which cause traders to trade?
@@ -15,7 +15,7 @@ What are the processes, which drive markets, which cause traders to trade?
 This begs the engineering question; What is the interface between a process
 and a service?
 
-##### The first process
+#### The first process
 A poisson process to explain, over discrete time intervals, the supply and demand
 on an individual trader's inventory by another trader.
 
@@ -25,7 +25,18 @@ a poisson distribution, a (bipartite) matching algorithm then dictates what item
 are traded between traders *A* and *B*. The algorithm could be tuned by things like
 tolerance to priorities and the leverage of individual traders.
 
-##### Todo
+### Todo
+
+#### Process
+- [] A process and interface with `Counter` and `Trigger` methods. `Counter` represents
+discrete, increasing time intervals for the poisson process to follow.
+`Trigger` is the event for the trade between trader A and another trader.
+- [] A trader and interface with `Trigger` method. The trader doesn't need to be aware
+of the counted time intervals.
+- [] A triggered trade follows a matching algorithm, perhaps with a `Matcher` method
+on a trader for the matching and results.
+
+#### Services
 - [] Three *trader* services with inventories and capital that make trades with
 one another.
 - [] Trades are accounted for by an *accountant* service, which interfaces with
@@ -34,6 +45,8 @@ the database.
 communicate with regard to transactions.
 - [] Bankers can also provide loans which update traders' inventories/capital.
 
+#### Database
+- [] Blockchain implements LinkedList
 - [] Merkle tree for blockchain transactions
   - [] Can store multiple transactions
   - [] Hash pointers
@@ -45,5 +58,5 @@ communicate with regard to transactions.
     as part of a red-black binary search tree
     with hash pointers for links.
 
+#### Misc.
 - [] Reflect on unexported members (utils.StringStruct)
-- [] Blockchain implements LinkedList
