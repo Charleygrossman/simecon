@@ -25,6 +25,13 @@ a poisson distribution, a (bipartite) matching algorithm then dictates what item
 are traded between traders *A* and *B*. The algorithm could be tuned by things like
 tolerance to priorities and the leverage of individual traders.
 
+#### The market
+A network that connects traders. Similar to queuing theory having a queue structure
+to connect servers and the serviced, like an *M/D/c* queue where a poisson process determines
+the arrival time *M* of the serviced, and *c* servers which service in deterministic *D* time,
+there should be an extensible data structure/system to enable the arrival of traders to one another
+and the time of the trade between the two (determined by the matching algorithm).
+
 ### Todo
 
 #### Process
