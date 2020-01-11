@@ -34,6 +34,22 @@ and the time of the trade between the two (determined by the matching algorithm)
 
 ### Todo
 
+1. [] Trader interface and implementation.
+
+2. [] A trade between two traders executed with a matching algorithm.
+
+3. [] Process interface and implementation.
+
+4. [] A trade between two traders triggered by a process.
+
+5. [] A market network that formalizes the connection amongst process and traders.
+
+6. [] Flush out blockchain database.
+
+7. [] Accountant interface and implementation that takes a completed trade and writes it to the database.
+
+8. [] Accountant integrated into market network.
+
 #### Process
 - [] A process and interface with `Counter` and `Trigger` methods. `Counter` represents
 discrete, increasing time intervals for the poisson process to follow.
@@ -51,6 +67,9 @@ the database.
 - [] When the database is updated, three *banker* services process and
 communicate with regard to transactions.
 - [] Bankers can also provide loans which update traders' inventories/capital.
+
+#### Market
+- [] A network/graph that formalizes the connections amongst processes and services.
 
 #### Database
 - [] Blockchain implements LinkedList
