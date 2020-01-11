@@ -1,4 +1,3 @@
-// Package blockchain provides primitives needed to work with a basic blockchain
 package blockchain
 
 import (
@@ -8,35 +7,32 @@ import (
 	"log"
 	"math/big"
 	"strings"
-	"time"
-	"tradesim/transaction"
+	"tradesim/entity/trader"
 	"tradesim/utils"
 )
 
-// maxint64 is a pointer to the largest int64 value,
-// for use with crypto/rand.Int
-var maxint64 *big.Int = big.NewInt(int64(^uint64(0) >> 1))
+// maxint64 is a pointer to the largest int64 value, for use with crypto/rand.Int
+var maxint64 = big.NewInt(int64(^uint64(0) >> 1))
 
-// Block is the node of a Blockchain
+// Block is the node of a blockchain.
 type Block struct {
-	// Previous is a hash pointer to the previous Block in the Blockchain
+	// Previous is a hash pointer to the previous block in the blockchain.
 	Previous string
-	// Timestamp is set at the time of Block's initialization
+	// Timestamp is set at the time of block's initialization.
 	Timestamp string
-	// Transaction records the Transaction stored in Block
-	Transaction *transaction.Transaction
-	// previous is a pointer to the previous Block in the Blockchain
+	// Transaction records the transaction stored in block.
+	Transaction *trader.TradeTxn
+	// previous is a pointer to the previous block in the blockchain.
 	previous *Block
 }
 
-// String returns the string representation of Block
 func (b *Block) String() string {
 	return utils.StringStruct(b)
 }
 
-// setPrevious sets Block's Previous hash pointer
-// to the hash of the previous Block's Timestamp and Transaction,
-// along with a high min-entropy nonce as a string
+// setPrevious sets b's Previous hash pointer
+// to the hash of the previous block's timestamp and transaction,
+// along with a high min-entropy nonce as a string.
 func (b *Block) setPrevious() {
 	if b.previous == nil {
 		p := b.previous
@@ -50,43 +46,37 @@ func (b *Block) setPrevious() {
 	}
 }
 
-// setTimestamp sets the Timestamp of Block to current local time in
-// yyyy-mm-ddThh:mm:ssZ format
 func (b *Block) setTimestamp() {
 	if b.Timestamp == "" {
-		b.Timestamp = fmt.Sprintf(time.Now().Format(time.RFC3339))
+		b.Timestamp = utils.Now()
 	}
 }
 
-// NewBlock instantiates and returns a new Block with the provided Transaction
-func NewBlock(transaction *transaction.Transaction) *Block {
+func NewBlock(txn *trader.TradeTxn) *Block {
 	block := &Block{
 		previous:    nil,
 		Previous:    "",
-		Transaction: transaction,
+		Transaction: txn,
 	}
 	block.setTimestamp()
 	return block
 }
 
-// LinkedList represents a singly-linked, append-only linked list
+// LinkedList represents a singly-linked, append-only linked-list.
 type LinkedList interface {
-	// Append appends a Node to the tail-end of LinkedList
 	Append(interface{})
-	// Len returns the length of LinkedList
 	Len() int
-	// String returns the string representation of LinkedList
 	String() string
 }
 
-// Blockchain represents an implementation of LinkedList
 type Blockchain struct {
-	// head is the initial Block of Blockchain
+	// head is the first Block in the blockchain.
 	head *Block
-	// tail is the final Block of Blockchain
+	// tail is the last Block in the blockchain.
 	tail *Block
 }
 
+// Append appends a block to the tail-end of B.
 func (B *Blockchain) Append(block *Block) {
 	if B.tail.previous == nil {
 		tmp := B.tail
@@ -122,8 +112,6 @@ func (B *Blockchain) String() string {
 	return fmt.Sprintf(strings.Join(rep, ", "))
 }
 
-// NewBlockchain instantiates and returns a new Blockchain
-// and provides it with a genesis Block
 func NewBlockchain() *Blockchain {
 	gen := &Block{
 		previous:    nil,

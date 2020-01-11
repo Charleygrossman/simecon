@@ -34,19 +34,19 @@ and the time of the trade between the two (determined by the matching algorithm)
 
 ### Todo
 
-1. [] Trader interface and implementation.
+1. [] Trader implementation.
 
 2. [] A trade between two traders executed with a matching algorithm.
 
-3. [] Process interface and implementation.
+3. [] Process implementation.
 
 4. [] A trade between two traders triggered by a process.
 
 5. [] A market network that formalizes the connection amongst process and traders.
 
-6. [] Flush out blockchain database.
+6. [] Flesh out blockchain database.
 
-7. [] Accountant interface and implementation that takes a completed trade and writes it to the database.
+7. [] Accountant implementation that takes a completed trade (transaction) and writes it to the database.
 
 8. [] Accountant integrated into market network.
 

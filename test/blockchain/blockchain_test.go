@@ -1,22 +1,22 @@
 package blockchain
 
 import (
-	"log"
 	"testing"
-	"tradesim/blockchain"
-	"tradesim/currency"
-	"tradesim/transaction"
+	"tradesim/db/blockchain"
+	"tradesim/entity/trader"
 )
 
-// TestLen asserts that a new Blockchain with one new Block appended has length 2
+// TestLen asserts that a new blockchain with one new block appended has length 2.
 func TestLen(t *testing.T) {
 	want := 2
 
 	bchain := blockchain.NewBlockchain()
-	trn, err := transaction.NewTransaction(3.14, transaction.CREDIT, currency.USD)
-	if err != nil {
-		log.Fatal(err)
-	}
+	trn := trader.NewTradeTxn(
+		trader.Trader{},
+		trader.Trader{},
+		trader.Inventory{},
+		trader.Inventory{},
+	)
 	block := blockchain.NewBlock(trn)
 	bchain.Append(block)
 
