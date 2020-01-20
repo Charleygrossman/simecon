@@ -2,7 +2,6 @@ package broker
 
 import (
 	"net/http"
-	"tradesim/entity/trader"
 	"tradesim/server"
 )
 
@@ -11,16 +10,12 @@ type Broker struct {
 }
 
 func (b Broker) Routes() {
-	b.Svr.Router.HandleFunc("/match", b.handleMatchRequest())
+	b.Svr.Router.HandleFunc("/trade", b.handleTrade())
 }
 
-// TODO: How to get the traders that request a match?
-func (b Broker) handleMatchRequest() http.HandlerFunc {
+func (b Broker) handleTrade() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
 		}
 	}
 }
-
-// TODO: Matching algorithm
-func match(a trader.Inventory, b trader.Inventory) {}

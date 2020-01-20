@@ -1,10 +1,17 @@
-// For now a transaction is a trade between two traders.
-// Transaction is a concept useful to the Accountant and database.
-
 package trader
 
 import (
 	"tradesim/utils"
+)
+
+type Code uint
+
+const (
+	USD Code = iota + 1
+	CNY
+	EUR
+	GBP
+	JPY
 )
 
 type TxnType uint
@@ -13,9 +20,6 @@ const (
 	TRADE TxnType = iota + 1
 )
 
-// TradeEvent is an executed trade between two traders.
-// The trade was matched by a Broker and accepted by both traders,
-// therefore it's executed and qualifies as a transaction event.
 type TradeTxn struct {
 	CreatedOn string
 	TxnType   TxnType

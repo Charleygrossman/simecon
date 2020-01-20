@@ -9,6 +9,6 @@ type Server struct {
 	Router *http.ServeMux
 }
 
-func (s *Server) Init() {
+func (s Server) Init() {
 	s.Router = http.NewServeMux()
 }

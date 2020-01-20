@@ -18,15 +18,14 @@ func DecodeBody(r *http.Request) (b []byte, err error) {
 }
 
 // JsonToMap takes a byte array it expects to be json,
-// and returns a map of the json fields of j and any errors that occur.
+// and returns a map of the json fields.
 func JsonToMap(j []byte) (map[string]interface{}, error) {
 	m := make(map[string]interface{})
 	err := json.Unmarshal(j, &m)
 	return m, err
 }
 
-// Now returns a datetime string derived from time.Now()
-// represented in the ISO 8601 format YYYY-MM-DD HH:MM:SS
+// Now returns current local time in the ISO 8601 format YYYY-MM-DD HH:MM:SS
 func Now() string {
 	t := fmt.Sprintf("%v", time.Now())
 	ts := strings.Split(t, " +")
