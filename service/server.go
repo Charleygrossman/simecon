@@ -1,10 +1,9 @@
-package server
+package service
 
 import (
 	"net/http"
 )
 
-// Server represents an HTTP web server.
 type Server struct {
 	Router *http.ServeMux
 }

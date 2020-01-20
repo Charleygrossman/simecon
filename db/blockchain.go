@@ -7,14 +7,55 @@ import (
 	"log"
 	"math/big"
 	"strings"
-	"tradesim/entity/trader"
-	"tradesim/utils"
+	"tradesim/util"
 )
 
-// maxint64 is a pointer to the largest int64 value, for use with crypto/rand.Int
+// maxint64 is a pointer to the largest int64 value.
 var maxint64 = big.NewInt(int64(^uint64(0) >> 1))
 
-// Blockchain is an append-only linked-list blockchain.
+// Block is the block of a blockchain.
+type Block struct {
+	// Txn is the transaction stored in the block.
+	Txn interface{}
+	// CreatedOn is a timestamp of the block's initialization.
+	CreatedOn string
+	// Prev is a hash pointer string to the previous block in the blockchain.
+	Prev string
+	// prevP is a pointer to the previous block in the blockchain.
+	prevP *Block
+}
+
+// String returns a string representation of the block.
+func (b *Block) String() string {
+	return util.StringStruct(b)
+}
+
+// setPrev sets the block's hash pointer string
+// to the hash of the previous block's initialization timestamp,
+// transaction, and a high min-entropy nonce as a string.
+func (b *Block) setPrev() {
+	if b.prevP == nil {
+		b.Prev = ""
+	} else {
+		p := b.prevP
+		nonce, err := rand.Int(rand.Reader, maxint64)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		// TODO: Fix reflection and add-in util.StringStruct(p.Txn)
+		data := p.CreatedOn + nonce.String()
+		b.Prev = fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
+	}
+}
+
+// Blockchain is an append-only, singly linked-list blockchain.
+//
+// A blockchain has the form
+//
+//     NULL <- [head] <- [block] ... <- [tail]
+//
+// Where the head is the genesis block, and all blocks point towards it.
+// The only means of traversal is to move from the tail towards the head.
 type Blockchain struct {
 	// head is the first block in the blockchain.
 	head *Block
@@ -22,19 +63,12 @@ type Blockchain struct {
 	tail *Block
 }
 
-// Append appends a block to the tail-end of the blockchain.
+// Append appends a block to the tail-end of the blockchain,
 func (b *Blockchain) Append(block *Block) {
-	if b.tail.prev == nil {
-		tmp := b.tail
-		b.tail = block
-		block.prev = tmp
-		block.Prev = strings.Repeat("0", 64)
-	} else {
-		tmp := b.tail
-		b.tail = block
-		block.prev = tmp
-		block.setPrev()
-	}
+	tmp := b.tail
+	block.prevP = tmp
+	block.setPrev()
+	b.tail = block
 }
 
 // Len returns the length of the blockchain.
@@ -43,7 +77,7 @@ func (b *Blockchain) Len() int {
 	curr := b.tail
 	for curr != nil {
 		count += 1
-		curr = curr.prev
+		curr = curr.prevP
 	}
 	return count
 }
@@ -53,70 +87,29 @@ func (b *Blockchain) String() string {
 	rep := []string{}
 	curr := b.tail
 	for curr != nil {
-		n := fmt.Sprintf("%v ->", curr.String())
-		rep = append(rep, n)
-		curr = curr.prev
+		rep = append(rep, curr.String())
+		curr = curr.prevP
 	}
-	return fmt.Sprintf(strings.Join(rep, ", "))
+	return fmt.Sprint(strings.Join(util.ReversedStringSlice(rep), "<-"))
 }
 
-// Block is the node of a blockchain.
-type Block struct {
-	// Txn records the transaction stored in the block.
-	Txn *trader.TradeTxn
-	// CreatedOn is set at the time of the block's initialization.
-	CreatedOn string
-	// Prev is a hash string pointer to the previous block in the blockchain.
-	Prev string
-	// previous is a pointer to the previous block in the blockchain.
-	prev *Block
-}
-
-// String returns a string representation of the block.
-func (b *Block) String() string {
-	return utils.StringStruct(b)
-}
-
-// setCreatedOn sets the block's creation timestamp to current local time
-// if it's not already set.
-func (b *Block) setCreatedOn() {
-	if b.CreatedOn == "" {
-		b.CreatedOn = utils.Now()
-	}
-}
-
-// setPrev sets the block's previous hash pointer
-// to the hash of the previous block's creation timestamp and transaction,
-// along with a high min-entropy nonce as a string.
-func (b *Block) setPrev() {
-	if b.prev == nil {
-		p := b.prev
-		nonce, err := rand.Int(rand.Reader, maxint64)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		data := p.CreatedOn + p.Txn.String() + nonce.String()
-		hash := fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
-		b.Prev = hash
-	}
-}
-
-func NewBlockchain() *Blockchain {
-	gen := NewBlock(nil)
-	b := &Blockchain{
-		head: gen,
-		tail: gen,
-	}
-	return b
-}
-
-func NewBlock(txn *trader.TradeTxn) *Block {
+// NewBlock instantiates and returns a new block with the provided transaction.
+func NewBlock(txn interface{}) *Block {
 	b := &Block{
-		prev: nil,
-		Prev: "",
-		Txn:  txn,
+		Txn:       txn,
+		CreatedOn: util.Now(),
 	}
-	b.setCreatedOn()
 	return b
+}
+
+// NewBlockchain instantiates and returns a new blockchain,
+// setting its head and tail to a genesis block.
+// A genesis block is the first block in a blockchain
+// and has a hash pointer string of 64 zeros.
+func NewBlockchain() *Blockchain {
+	gen := &Block{
+		Prev:      strings.Repeat("0", 64),
+		CreatedOn: util.Now(),
+	}
+	return &Blockchain{head: gen, tail: gen}
 }
