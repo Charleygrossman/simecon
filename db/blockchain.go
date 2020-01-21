@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"fmt"
-	"log"
 	"math/big"
 	"strings"
 	"tradesim/util"
@@ -13,39 +12,49 @@ import (
 // maxint64 is a pointer to the largest int64 value.
 var maxint64 = big.NewInt(int64(^uint64(0) >> 1))
 
-// Block is the block of a blockchain.
-type Block struct {
-	// Txn is the transaction stored in the block.
-	Txn interface{}
-	// CreatedOn is a timestamp of the block's initialization.
-	CreatedOn string
-	// Prev is a hash pointer string to the previous block in the blockchain.
-	Prev string
+// block is the block of a blockchain.
+type block struct {
+	// TODO: Define a transaction.
+	// txn is the transaction stored in the block.
+	txn interface{}
+	// createdOn is a timestamp of the block's initialization.
+	createdOn string
+	// prev is a hash pointer string to the previous block in the blockchain.
+	prev string
 	// prevP is a pointer to the previous block in the blockchain.
-	prevP *Block
-}
-
-// String returns a string representation of the block.
-func (b *Block) String() string {
-	return util.StringStruct(b)
+	prevP *block
 }
 
 // setPrev sets the block's hash pointer string
 // to the hash of the previous block's initialization timestamp,
 // transaction, and a high min-entropy nonce as a string.
-func (b *Block) setPrev() {
+//
+// A boolean is returned to show success or failure to set.
+func (b *block) setPrev() bool {
+	// prev must only be set if the underlying
+	// prevP pointer points to another block.
+	//
+	// The only block with a nil prevP pointer
+	// in a blockchain is the genesis block,
+	// which must have a prev value of 64 zeros.
 	if b.prevP == nil {
-		b.Prev = ""
+		return false
 	} else {
 		p := b.prevP
 		nonce, err := rand.Int(rand.Reader, maxint64)
 		if err != nil {
-			log.Fatalln(err)
+			return false
 		}
 		// TODO: Fix reflection and add-in util.StringStruct(p.Txn)
-		data := p.CreatedOn + nonce.String()
-		b.Prev = fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
+		data := p.createdOn + nonce.String()
+		b.prev = fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
+		return true
 	}
+}
+
+// string returns a string representation of the block.
+func (b *block) string() string {
+	return util.StringStruct(b)
 }
 
 // Blockchain is an append-only, singly linked-list blockchain.
@@ -56,19 +65,32 @@ func (b *Block) setPrev() {
 //
 // Where the head is the genesis block, and all blocks point towards it.
 // The only means of traversal is to move from the tail towards the head.
+//
+// The genesis block is the first block in a blockchain, with a nil transaction,
+// a nil previous pointer, and has a hash pointer string of 64 zeros.
 type Blockchain struct {
 	// head is the first block in the blockchain.
-	head *Block
+	head *block
 	// tail is the last block in the blockchain.
-	tail *Block
+	tail *block
 }
 
-// Append appends a block to the tail-end of the blockchain,
-func (b *Blockchain) Append(block *Block) {
+// Append appends a block to the tail-end of the blockchain.
+//
+// If setting the block's hash pointer string fails,
+// defensively set the block's previous pointer to nil.
+//
+// A boolean is returned to show success or failure to append.
+func (b *Blockchain) Append(block *block) bool {
 	tmp := b.tail
 	block.prevP = tmp
-	block.setPrev()
-	b.tail = block
+	if ok := block.setPrev(); ok == false {
+		block.prevP = nil
+		return false
+	} else {
+		b.tail = block
+		return true
+	}
 }
 
 // Len returns the length of the blockchain.
@@ -83,33 +105,31 @@ func (b *Blockchain) Len() int {
 }
 
 // String returns a string representation of the blockchain.
-func (b *Blockchain) String() string {
+func (b *Blockchain) string() string {
 	rep := []string{}
 	curr := b.tail
 	for curr != nil {
-		rep = append(rep, curr.String())
+		rep = append(rep, curr.string())
 		curr = curr.prevP
 	}
 	return fmt.Sprint(strings.Join(util.ReversedStringSlice(rep), "<-"))
 }
 
 // NewBlock instantiates and returns a new block with the provided transaction.
-func NewBlock(txn interface{}) *Block {
-	b := &Block{
-		Txn:       txn,
-		CreatedOn: util.Now(),
+func NewBlock(txn interface{}) *block {
+	b := &block{
+		txn:       txn,
+		createdOn: util.Now(),
 	}
 	return b
 }
 
 // NewBlockchain instantiates and returns a new blockchain,
 // setting its head and tail to a genesis block.
-// A genesis block is the first block in a blockchain
-// and has a hash pointer string of 64 zeros.
 func NewBlockchain() *Blockchain {
-	gen := &Block{
-		Prev:      strings.Repeat("0", 64),
-		CreatedOn: util.Now(),
+	gen := &block{
+		prev:      strings.Repeat("0", 64),
+		createdOn: util.Now(),
 	}
 	return &Blockchain{head: gen, tail: gen}
 }
