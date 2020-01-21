@@ -104,7 +104,7 @@ func (b *Blockchain) Len() int {
 	return count
 }
 
-// String returns a string representation of the blockchain.
+// string returns a string representation of the blockchain.
 func (b *Blockchain) string() string {
 	rep := []string{}
 	curr := b.tail
