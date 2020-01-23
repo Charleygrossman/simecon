@@ -31,11 +31,26 @@ func ReversedStringSlice(s []string) []string {
 
 // StringStruct returns a one-line string representation of the provided interface.
 func StringStruct(t interface{}) string {
-	v := reflect.ValueOf(t).Elem()
 	rep := []string{}
-	for i := 0; i < v.NumField(); i++ {
-		f := fmt.Sprintf("%s:%v", v.Type().Field(i).Name, v.Field(i).Interface())
-		rep = append(rep, f)
-	}
+	stringStruct(reflect.ValueOf(&t), &rep)
 	return fmt.Sprint(strings.Join(rep, ","))
+}
+
+func stringStruct(v reflect.Value, repP *[]string) {
+	typeOfT := v.Type()
+	if typeOfT.Kind() == reflect.Ptr {
+		typeOfT = typeOfT.Elem()
+		v = v.Elem()
+	}
+	if typeOfT.Kind() == reflect.Struct {
+		for i := 0; i < v.NumField(); i++ {
+			f := typeOfT.Field(i)
+			if f.Anonymous {
+				stringStruct(v.Field(i).Addr(), repP)
+			} else {
+				s := fmt.Sprintf("%s:%v", f.Name, v.Field(i).Interface())
+				*repP = append(*repP, s)
+			}
+		}
+	}
 }

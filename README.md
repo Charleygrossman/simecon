@@ -24,6 +24,8 @@ the time of the trade determined by the matching algorithm.
 #### Todo
 [] Fix blockchain reflection issues.
 
+[] Define a transaction.
+
 [] A simple trade between two traders and any middle-man service.
 
 [] A trade between two traders triggered by a process.
