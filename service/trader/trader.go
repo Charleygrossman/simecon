@@ -8,19 +8,19 @@ import (
 	"tradesim/util"
 )
 
-type Good struct {
-	Name string
-	Cost int64
+type good struct {
+	name string
+	cost int64
 }
 
-type Inventory struct {
-	Cash  int64
-	Goods []Good
+type inventory struct {
+	cash  int64
+	goods []good
 }
 
 type Trader struct {
 	id     uint64
-	inv    *Inventory
+	inv    *inventory
 	client *service.Client
 	server *service.Server
 }

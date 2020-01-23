@@ -34,7 +34,8 @@ func StringStruct(t interface{}) string {
 	v := reflect.ValueOf(t).Elem()
 	rep := []string{}
 	for i := 0; i < v.NumField(); i++ {
-		rep = append(rep, fmt.Sprintf("%s:%v", v.Type().Field(i).Name, v.Field(i).Interface()))
+		f := fmt.Sprintf("%s:%v", v.Type().Field(i).Name, v.Field(i).Interface())
+		rep = append(rep, f)
 	}
 	return fmt.Sprint(strings.Join(rep, ","))
 }

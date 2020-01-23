@@ -12,6 +12,6 @@ var (
 	ErrInvalidTimestamp = fmt.Errorf("invalid timestamp")
 )
 
-func IsValidTimestamp(t string) (bool, error) {
+func ValidTimestamp(t string) (bool, error) {
 	return true, nil
 }

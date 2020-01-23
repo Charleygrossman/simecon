@@ -7,7 +7,7 @@ trade is called a market."
 *system*."
 
 #### Process
-A stochastic process that drive trade requests between traders.
+A stochastic process that drives trade requests between traders.
 
 Given that a request is made by trader *A* to trade for one
 or more items that trader *B* owns, the probability of that request following
@@ -15,7 +15,7 @@ some distribution, a matching algorithm then dictates what items
 can be traded between traders *A* and *B*.
 
 #### Market
-A network that connects traders. Similar to queuing theory having a queue structure
+A network that connects traders. Like queuing theory having a queue structure
 to connect servers and the serviced, like an *M/D/c* queue where a poisson process determines
 the arrival time *M* of the serviced, and *c* servers which service in deterministic *D* time,
 there should be a data structure/system to enable the arrival of trades between traders,
