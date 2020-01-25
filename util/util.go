@@ -29,28 +29,21 @@ func ReversedStringSlice(s []string) []string {
 	return s
 }
 
+// TODO: Understand interfaces and reflection before trying to implement this.
 // StringStruct returns a one-line string representation of the provided interface.
 func StringStruct(t interface{}) string {
-	rep := []string{}
-	stringStruct(reflect.ValueOf(&t), &rep)
-	return fmt.Sprint(strings.Join(rep, ","))
-}
-
-func stringStruct(v reflect.Value, repP *[]string) {
-	typeOfT := v.Type()
-	if typeOfT.Kind() == reflect.Ptr {
-		typeOfT = typeOfT.Elem()
-		v = v.Elem()
+	if t == nil {
+		return ""
 	}
-	if typeOfT.Kind() == reflect.Struct {
-		for i := 0; i < v.NumField(); i++ {
-			f := typeOfT.Field(i)
-			if f.Anonymous {
-				stringStruct(v.Field(i).Addr(), repP)
-			} else {
-				s := fmt.Sprintf("%s:%v", f.Name, v.Field(i).Interface())
-				*repP = append(*repP, s)
-			}
+	// s is the struct reflection object.
+	s := reflect.ValueOf(t).Elem()
+	typeOfT := s.Type()
+	rep := []string{}
+	for i := 0; i < s.NumField(); i++ {
+		if s.Field(i).Interface() != nil {
+			f := fmt.Sprintf("%s:%v", typeOfT.Field(i).Name, s.Field(i).Interface())
+			rep = append(rep, f)
 		}
 	}
+	return fmt.Sprintf(strings.Join(rep, ","))
 }

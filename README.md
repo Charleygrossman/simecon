@@ -22,8 +22,6 @@ there should be a data structure/system to enable the arrival of trades between 
 the time of the trade determined by the matching algorithm.
 
 #### Todo
-[] Fix blockchain reflection issues.
-
 [] Define a transaction.
 
 [] A simple trade between two traders and any middle-man service.
@@ -32,6 +30,8 @@ the time of the trade determined by the matching algorithm.
    A process interface has `Counter` and `Trigger` methods.
    `Counter` counts the time series for the process to follow.
    `Trigger` is the event for a trade between traders.
+   
+[] Fix reflection issues.
 
 [] Services networked together in a market.
 

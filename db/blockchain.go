@@ -14,6 +14,7 @@ var maxint64 = big.NewInt(int64(^uint64(0) >> 1))
 
 // block is the block of a blockchain.
 type block struct {
+	// TODO: Define a transaction.
 	// txn is the transaction stored in the block.
 	txn interface{}
 	// createdOn is a timestamp of the block's initialization.
@@ -44,7 +45,8 @@ func (b *block) setPrev() bool {
 		if err != nil {
 			return false
 		}
-		data := p.createdOn + util.StringStruct(p.txn) + nonce.String()
+		// TODO: Add p.txn string to data.
+		data := p.createdOn + nonce.String()
 		b.prev = fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
 		return true
 	}
