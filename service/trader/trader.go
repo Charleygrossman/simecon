@@ -1,48 +1,46 @@
 package trader
 
 import (
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"tradesim/common"
 	"tradesim/service"
 	"tradesim/util"
 )
 
-// Trade is a type of transaction,
-// defined by involving a "from" trader and a "to" trader,
-// as well as the thing(s) being traded.
-type Trade interface {
-	TxnType() string
-	CreatedOn() string
-	From() int64
-	To() int64
-	Cash() int64
-	Goods() []good
-}
-
-type good struct {
-	name string
-	cost int64
-}
-
-type inventory struct {
-	cash  int64
-	goods []good
-}
-
-type Trader struct {
+// TODO: Map a trader's id to its server's IP address.
+type trader struct {
 	id     uint64
-	inv    *inventory
+	cash   []cash
+	goods  []good
 	client *service.Client
 	server *service.Server
 }
 
-func (t Trader) Routes() {
+func (t trader) tradeRequest(requestee uint64, entity tradeEntity) error {
+	trade, err := json.Marshal(&trade{
+		tradeEntity: entity,
+		from:        t.id,
+		to:          requestee,
+		txnType:     common.TRADE,
+		createdOn:   util.Now(),
+	})
+	if err != nil {
+		return err
+	}
+	url := fmt.Sprintf("%d/trade", requestee)
+	return t.client.Post(url, trade)
+}
+
+func (t trader) Routes() {
 	t.server.Router.HandleFunc("/trade", t.handleTrade())
 }
 
 // TODO: Handle trade request from another trader.
-func (t Trader) handleTrade() http.HandlerFunc {
+func (t trader) handleTrade() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		if req.Method == http.MethodPost {
 			b, err := ioutil.ReadAll(req.Body)
