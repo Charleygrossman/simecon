@@ -8,6 +8,18 @@ import (
 	"tradesim/util"
 )
 
+// Trade is a type of transaction,
+// defined by involving a "from" trader and a "to" trader,
+// as well as the thing(s) being traded.
+type Trade interface {
+	TxnType() string
+	CreatedOn() string
+	From() int64
+	To() int64
+	Cash() int64
+	Goods() []good
+}
+
 type good struct {
 	name string
 	cost int64

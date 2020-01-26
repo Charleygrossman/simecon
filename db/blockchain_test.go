@@ -10,7 +10,7 @@ func TestLen(t *testing.T) {
 	want := 2
 
 	b := NewBlockchain()
-	b.Append(NewBlock(nil))
+	b.Append(NewBlock(Txn(nil)))
 
 	if got := b.Len(); got != want {
 		t.Errorf("Blockchain.Len() = %v", got)

@@ -12,11 +12,17 @@ import (
 // maxint64 is a pointer to the largest int64 value.
 var maxint64 = big.NewInt(int64(^uint64(0) >> 1))
 
+// Txn is a generic transaction that any
+// type of transaction should satisfy.
+type Txn interface {
+	txnType() string
+	createdOn() string
+}
+
 // block is the block of a blockchain.
 type block struct {
-	// TODO: Define a transaction.
 	// txn is the transaction stored in the block.
-	txn interface{}
+	txn Txn
 	// createdOn is a timestamp of the block's initialization.
 	createdOn string
 	// prev is a hash pointer string to the previous block in the blockchain.
@@ -115,8 +121,9 @@ func (b *Blockchain) string() string {
 	return fmt.Sprint(strings.Join(util.ReversedStringSlice(rep), "<-"))
 }
 
-// NewBlock instantiates and returns a new block with the provided transaction.
-func NewBlock(txn interface{}) *block {
+// NewBlock instantiates and returns
+// a new block with the provided transaction.
+func NewBlock(txn Txn) *block {
 	b := &block{
 		txn:       txn,
 		createdOn: util.Now(),
