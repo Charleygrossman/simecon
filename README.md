@@ -22,6 +22,9 @@ there should be a data structure/system to enable the arrival of trades between 
 the time of the trade determined by the matching algorithm.
 
 #### Todo
+[] Assuming this program runs on one machine and isn't distributed on a network,
+rewrite I/O connections to use processes and `net/rpc`, not `net/http`.
+
 [] Define a transaction.
 
 [] A simple trade between two traders and any middle-man service.

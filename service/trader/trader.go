@@ -25,7 +25,7 @@ func (t trader) tradeRequest(requestee uint64, entity tradeEntity) error {
 		tradeEntity: entity,
 		from:        t.id,
 		to:          requestee,
-		txnType:     common.TRADE,
+		txnType:     common.TradeRequested,
 		createdOn:   util.Now(),
 	})
 	if err != nil {

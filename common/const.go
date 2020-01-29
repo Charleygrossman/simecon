@@ -20,5 +20,5 @@ const (
 type TxnType string
 
 const (
-	TRADE TxnType = "trade"
+	TradeRequested TxnType = "TradeRequested"
 )
