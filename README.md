@@ -22,10 +22,16 @@ there should be a data structure/system to enable the arrival of trades between 
 the time of the trade determined by the matching algorithm.
 
 #### Todo
+[] (Priority) Define a transaction.
+
+[] Flesh out blockchain database.
+   - [] Decide if a balanced Merkle tree of transactions is needed for blocks of blockchain.
+   - [] Once a transaction is compressed and made comparable,
+        that encoding can be stored as a generic comparable key,
+        as part of a red-black binary search tree with hash pointers for links.
+
 [] Assuming this program runs on one machine and isn't distributed on a network,
 rewrite I/O connections to use processes and `net/rpc`, not `net/http`.
-
-[] Define a transaction.
 
 [] A simple trade between two traders and any middle-man service.
 
@@ -37,16 +43,5 @@ rewrite I/O connections to use processes and `net/rpc`, not `net/http`.
 [] Fix reflection issues.
 
 [] Services networked together in a market.
-
-[] Flesh out blockchain database.
-   - [] Merkle tree for blockchain transactions
-   - [] Can store multiple transactions
-   - [] Hash pointers
-   - [] Compressed/encoded
-   - [] Some generic comparable
-   - [] Balanced
-   - [] Once a transaction is compressed and made comparable,
-        that encoding can be stored as a generic comparable key,
-        as part of a red-black binary search tree with hash pointers for links.
 
 [] A completed trade transaction written to the database.

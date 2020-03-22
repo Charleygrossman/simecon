@@ -4,14 +4,10 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"fmt"
-	"math/big"
 	"strings"
 	"tradesim/common"
 	"tradesim/util"
 )
-
-// maxint64 is a pointer to the largest int64 value.
-var maxint64 = big.NewInt(int64(^uint64(0) >> 1))
 
 // txn is a financial transaction.
 type txn interface {
@@ -90,7 +86,7 @@ type Blockchain struct {
 func (b *Blockchain) Append(block *block) bool {
 	tmp := b.tail
 	block.prevP = tmp
-	if ok := block.setPrev(); ok == false {
+	if ok := block.setPrev(); !ok {
 		block.prevP = nil
 		return false
 	} else {
