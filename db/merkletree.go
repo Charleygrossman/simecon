@@ -14,15 +14,17 @@ const (
 	BLACK Color = false
 )
 
-// TODO: Transaction field.
 type Node struct {
-	color   Color
-	left    string
-	right   string
+	trx    Transaction
+	color  Color
+	parent string // TODO
+	left   string
+	right  string
 	// createdOn is a timestamp of the node's initialization.
 	createdOn string
-	leftP   *Node
-	rightP  *Node
+	parentP   *Node // TODO
+	leftP     *Node
+	rightP    *Node
 }
 
 // TODO: Make iterative.
@@ -59,7 +61,7 @@ func (n *Node) RotateLeft() *Node {
 }
 
 func (n *Node) RotateRight() *Node {
-	x :=  n.leftP
+	x := n.leftP
 
 	n.leftP = x.rightP
 	n.setLeft()
@@ -72,7 +74,6 @@ func (n *Node) RotateRight() *Node {
 
 	return x
 }
-
 
 // TODO
 // setLeft sets the block's left hash pointer string
@@ -126,22 +127,59 @@ func (t Tree) Size() int {
 	return t.root.Size()
 }
 
-// TODO
-func (t Tree) Insert(n Node) {}
+// Insert inserts a transaction into the tree, then performs the following
+// sequence of operations from the inserted node up to the root:
+//
+//     1. If the left child is black and the right child is red, rotate left.
+//     2. If both the left child and its left child are red, rotate right.
+//     3. If both the left child and the right child are red, flip colors.
+//
+// Finally, the root color is set to black.
+func (t Tree) Insert(trx Transaction) {
+	curr := t.insert(trx)
 
-// TODO
-func (t Tree) Delete(n Node) {}
+	for curr != nil {
+		l := curr.leftP
+		r := curr.rightP
+		if (l != nil && l.color == BLACK) && (r != nil && r.color == RED) {
+			curr.RotateLeft()
+		}
+		if (l != nil && l.color == RED) && (l.leftP != nil && l.leftP.color == RED) {
+			curr.RotateRight()
+		}
+		if (l != nil && l.color == RED) && (r != nil && r.color == RED) {
+			curr.FlipColors()
+		}
+		curr = curr.parentP
+	}
 
-// NewNode instantiates and returns a new node.
-func NewNode(color Color) *Node {
-	n := &Node{
-		color: color,
-		createdOn: util.Now(),
+	t.root.color = BLACK
+}
+
+func (t Tree) insert(trx Transaction) *Node {
+	trxHash := trx.getHash()
+	prev, curr := t.root, t.root
+	left := false
+
+	for curr != nil {
+		currHash := curr.trx.getHash()
+		prev = curr
+
+		if trxHash < currHash {
+			curr = curr.leftP
+			left = true
+		} else if trxHash > currHash {
+			curr = curr.rightP
+			left = false
+		} else {
+			return nil
+		}
+	}
+	n := &Node{createdOn: util.Now()}
+	if left {
+		prev.leftP = n
+	} else {
+		prev.rightP = n
 	}
 	return n
 }
-
-
-
-
-

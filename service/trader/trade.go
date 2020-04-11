@@ -1,6 +1,11 @@
 package trader
 
-import "tradesim/common"
+import (
+	"crypto/sha256"
+	"fmt"
+	"strconv"
+	"tradesim/common"
+)
 
 // trade is a type of transaction
 // that involves "from" and "to" traders
@@ -15,6 +20,12 @@ type trade struct {
 
 func (t trade) getTxnType() common.TxnType {
 	return t.txnType
+}
+
+// TODO: Full hash.
+func (t trade) getHash() string {
+	data := strconv.FormatUint(t.from, 10) + strconv.FormatUint(t.to, 10) + string(t.txnType) + t.createdOn
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
 }
 
 func (t trade) getCreatedOn() string {
