@@ -22,7 +22,7 @@ there should be a data structure/system to enable the arrival of trades between 
 the time of the trade determined by the matching algorithm.
 
 #### Todo
-[] (Priority) Define a transaction.
+[x] (Priority) Define a transaction.
 
 [] Flesh out blockchain database.
    - [] Decide if a balanced Merkle tree of transactions is needed for blocks of blockchain.

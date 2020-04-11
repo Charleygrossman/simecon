@@ -4,7 +4,23 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"strconv"
-	"tradesim/common"
+	"tradesim/transaction"
+)
+
+// ccy represents a currency code.
+type Ccy string
+
+const (
+	// United States Dollar
+	USD Ccy = "USD"
+	// Renminbi (Chinese Yuan)
+	CNY Ccy = "CNY"
+	// Euro
+	EUR Ccy = "EUR"
+	// Pound Sterling
+	GBP Ccy = "GBP"
+	// Japanese Yen
+	JPY Ccy = "JPY"
 )
 
 // trade is a type of transaction
@@ -14,17 +30,16 @@ type trade struct {
 	tradeEntity tradeEntity
 	from        uint64
 	to          uint64
-	txnType     common.TxnType
+	txnType     transaction.TxnType
 	createdOn   string
 }
 
-func (t trade) getTxnType() common.TxnType {
+func (t trade) GetTxnType() transaction.TxnType {
 	return t.txnType
 }
 
-// TODO: Full hash.
-func (t trade) getHash() string {
-	data := strconv.FormatUint(t.from, 10) + strconv.FormatUint(t.to, 10) + string(t.txnType) + t.createdOn
+func (t trade) GetHash() string {
+	data := strconv.FormatUint(t.from, 10) + strconv.FormatUint(t.to, 10) + string(t.txnType)
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
 }
 
@@ -37,15 +52,15 @@ type tradeEntity interface {
 	// value returns the cash quantity of the provided currency
 	// of the tradeEntity. The boolean return value distinguishes
 	// no value from a zero value.
-	value(ccy common.Ccy) (float64, bool)
+	value(ccy Ccy) (float64, bool)
 }
 
 type cash struct {
 	qty float64
-	ccy common.Ccy
+	ccy Ccy
 }
 
-func (c cash) value(ccy common.Ccy) (float64, bool) {
+func (c cash) value(ccy Ccy) (float64, bool) {
 	if ccy != c.ccy {
 		return 0.0, false
 	}
@@ -53,11 +68,11 @@ func (c cash) value(ccy common.Ccy) (float64, bool) {
 }
 
 type good struct {
-	cost map[common.Ccy]float64
+	cost map[Ccy]float64
 	name string
 }
 
-func (g good) value(ccy common.Ccy) (float64, bool) {
+func (g good) value(ccy Ccy) (float64, bool) {
 	cost, ok := g.cost[ccy]
 	return cost, ok
 }

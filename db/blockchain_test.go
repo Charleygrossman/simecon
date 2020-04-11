@@ -2,6 +2,7 @@ package db
 
 import (
 	"testing"
+	"tradesim/transaction"
 )
 
 // TestLen asserts that a new blockchain
@@ -10,7 +11,7 @@ func TestLen(t *testing.T) {
 	want := 2
 
 	b := NewBlockchain()
-	b.Append(NewBlock(txn(nil)))
+	b.Append(NewBlock(transaction.Transaction(nil)))
 
 	if got := b.Len(); got != want {
 		t.Errorf("Blockchain.Len() = %v", got)

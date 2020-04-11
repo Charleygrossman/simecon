@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"fmt"
+	"tradesim/transaction"
 	"tradesim/util"
 )
 
@@ -15,24 +16,15 @@ const (
 )
 
 type Node struct {
-	trx    Transaction
-	color  Color
-	parent string // TODO
-	left   string
-	right  string
-	// createdOn is a timestamp of the node's initialization.
 	createdOn string
-	parentP   *Node // TODO
+	txn       transaction.Transaction
+	color     Color
+	parent    string
+	left      string
+	right     string
+	parentP   *Node
 	leftP     *Node
 	rightP    *Node
-}
-
-// TODO: Make iterative.
-func (n *Node) Size() int {
-	if n == nil {
-		return 0
-	}
-	return 1 + n.leftP.Size() + n.rightP.Size()
 }
 
 func (n *Node) FlipColors() {
@@ -73,6 +65,28 @@ func (n *Node) RotateRight() *Node {
 	n.color = RED
 
 	return x
+}
+
+// TODO
+// setParent sets the block's parent hash pointer string
+// to the hash of the parent node.
+//
+// A boolean is returned to show success or failure to set.
+func (n *Node) setParent() bool {
+	// left must only be set if the underlying
+	// leftP pointer points to another node.
+	if n.parentP == nil {
+		return false
+	} else {
+		p := n.parentP
+		randint, err := rand.Int(rand.Reader, maxint64)
+		if err != nil {
+			return false
+		}
+		data := p.createdOn + randint.String()
+		n.parent = fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
+		return true
+	}
 }
 
 // TODO
@@ -121,10 +135,11 @@ func (n *Node) setRight() bool {
 
 type Tree struct {
 	root *Node
+	size uint64
 }
 
-func (t Tree) Size() int {
-	return t.root.Size()
+func (t Tree) Size() uint64 {
+	return t.size
 }
 
 // Insert inserts a transaction into the tree, then performs the following
@@ -135,7 +150,7 @@ func (t Tree) Size() int {
 //     3. If both the left child and the right child are red, flip colors.
 //
 // Finally, the root color is set to black.
-func (t Tree) Insert(trx Transaction) {
+func (t Tree) Insert(trx transaction.Transaction) {
 	curr := t.insert(trx)
 
 	for curr != nil {
@@ -156,30 +171,35 @@ func (t Tree) Insert(trx Transaction) {
 	t.root.color = BLACK
 }
 
-func (t Tree) insert(trx Transaction) *Node {
-	trxHash := trx.getHash()
+func (t Tree) insert(txn transaction.Transaction) *Node {
+	txnHash := txn.GetHash()
 	prev, curr := t.root, t.root
-	left := false
+	l := false
 
 	for curr != nil {
-		currHash := curr.trx.getHash()
+		currHash := curr.txn.GetHash()
 		prev = curr
 
-		if trxHash < currHash {
+		if txnHash < currHash {
 			curr = curr.leftP
-			left = true
-		} else if trxHash > currHash {
+			l = true
+		} else if txnHash > currHash {
 			curr = curr.rightP
-			left = false
+			l = false
 		} else {
 			return nil
 		}
 	}
 	n := &Node{createdOn: util.Now()}
-	if left {
+	if l {
 		prev.leftP = n
+		prev.setLeft()
 	} else {
 		prev.rightP = n
+		prev.setRight()
 	}
+	n.parentP = prev
+	prev.setParent()
+	t.size += 1
 	return n
 }

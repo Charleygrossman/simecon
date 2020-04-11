@@ -5,22 +5,16 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"strings"
-	"tradesim/common"
+	"tradesim/transaction"
 	"tradesim/util"
 )
 
-// txn is a financial transaction.
-type txn interface {
-	getTxnType() common.TxnType
-	getCreatedOn() string
-}
-
 // block is the block of a blockchain.
 type block struct {
-	// txn is the transaction stored in the block.
-	txn txn
 	// createdOn is a timestamp of the block's initialization.
 	createdOn string
+	// transaction is the transaction stored in the block.
+	txn transaction.Transaction
 	// prev is a hash pointer string to the previous block in the blockchain.
 	prev string
 	// prevP is a pointer to the previous block in the blockchain.
@@ -47,7 +41,7 @@ func (b *block) setPrev() bool {
 		if err != nil {
 			return false
 		}
-		// TODO: Add p.txn string to data.
+		// TODO: Add p.transaction string to data.
 		data := p.createdOn + nonce.String()
 		b.prev = fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
 		return true
@@ -119,7 +113,7 @@ func (b *Blockchain) string() string {
 
 // NewBlock instantiates and returns
 // a new block with the provided transaction.
-func NewBlock(txn txn) *block {
+func NewBlock(txn transaction.Transaction) *block {
 	b := &block{
 		txn:       txn,
 		createdOn: util.Now(),
