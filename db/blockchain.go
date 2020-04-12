@@ -5,7 +5,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"strings"
-	"tradesim/transaction"
+	"tradesim/txn"
 	"tradesim/util"
 )
 
@@ -13,8 +13,8 @@ import (
 type block struct {
 	// createdOn is a timestamp of the block's initialization.
 	createdOn string
-	// transaction is the transaction stored in the block.
-	txn transaction.Transaction
+	// txn is the txn stored in the block.
+	txn txn.Transaction // TODO: Stores merkle tree instead
 	// prev is a hash pointer string to the previous block in the blockchain.
 	prev string
 	// prevP is a pointer to the previous block in the blockchain.
@@ -23,7 +23,7 @@ type block struct {
 
 // setPrev sets the block's hash pointer string
 // to the hash of the previous block's initialization timestamp,
-// transaction, and a high min-entropy nonce as a string.
+// txn, and a high min-entropy nonce as a string.
 //
 // A boolean is returned to show success or failure to set.
 func (b *block) setPrev() bool {
@@ -41,7 +41,7 @@ func (b *block) setPrev() bool {
 		if err != nil {
 			return false
 		}
-		// TODO: Add p.transaction string to data.
+		// TODO: Add p.txn string to data.
 		data := p.createdOn + nonce.String()
 		b.prev = fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
 		return true
@@ -62,7 +62,7 @@ func (b *block) string() string {
 // Where the head is the genesis block, and all blocks point towards it.
 // The only means of traversal is to move from the tail towards the head.
 //
-// The genesis block is the first block in a blockchain, with a nil transaction,
+// The genesis block is the first block in a blockchain, with a nil txn,
 // a nil previous pointer, and has a hash pointer string of 64 zeros.
 type Blockchain struct {
 	// head is the first block in the blockchain.
@@ -112,8 +112,8 @@ func (b *Blockchain) string() string {
 }
 
 // NewBlock instantiates and returns
-// a new block with the provided transaction.
-func NewBlock(txn transaction.Transaction) *block {
+// a new block with the provided txn.
+func NewBlock(txn txn.Transaction) *block {
 	b := &block{
 		txn:       txn,
 		createdOn: util.Now(),

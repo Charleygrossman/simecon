@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 	"tradesim/service"
-	"tradesim/transaction"
+	"tradesim/txn"
 	"tradesim/util"
 )
 
@@ -25,7 +25,7 @@ func (t trader) tradeRequest(requestee uint64, entity tradeEntity) error {
 		tradeEntity: entity,
 		from:        t.id,
 		to:          requestee,
-		txnType:     transaction.TradeRequested,
+		txnType:     txn.TradeRequested,
 		createdOn:   util.Now(),
 	})
 	if err != nil {

@@ -4,7 +4,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"strconv"
-	"tradesim/transaction"
+	"tradesim/txn"
 )
 
 // ccy represents a currency code.
@@ -23,18 +23,18 @@ const (
 	JPY Ccy = "JPY"
 )
 
-// trade is a type of transaction
+// trade is a type of txn
 // that involves "from" and "to" traders
 // as well as the thing being traded.
 type trade struct {
 	tradeEntity tradeEntity
 	from        uint64
 	to          uint64
-	txnType     transaction.TxnType
+	txnType     txn.TxnType
 	createdOn   string
 }
 
-func (t trade) GetTxnType() transaction.TxnType {
+func (t trade) GetTxnType() txn.TxnType {
 	return t.txnType
 }
 
