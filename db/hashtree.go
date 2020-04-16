@@ -1,6 +1,7 @@
 package db
 
 import (
+	"github.com/google/uuid"
 	"tradesim/txn"
 	"tradesim/util"
 )
@@ -14,6 +15,7 @@ const (
 
 // TODO
 type node struct {
+	id        uuid.UUID
 	createdOn string
 	color     color
 	parentP   *node
@@ -83,27 +85,14 @@ func (t Tree) Size() uint64 {
 //
 // Finally, the root color is set to black.
 func (t Tree) Insert(txn txn.Transaction) {
-	curr := t.insert(txn)
-
-	for curr != nil {
-		l, r := curr.leftP, curr.rightP
-		if (l != nil && l.color == BLACK) && (r != nil && r.color == RED) {
-			curr.rotateLeft()
-		}
-		if (l != nil && l.color == RED) && (l.leftP != nil && l.leftP.color == RED) {
-			curr.rotateRight()
-		}
-		if (l != nil && l.color == RED) && (r != nil && r.color == RED) {
-			curr.flipColors()
-		}
-		curr = curr.parentP
-	}
-
-	t.root.color = BLACK
+	node := t.insert(txn)
+	t.balance(node)
+	t.rehash(node)
 }
 
-// TODO: Leaf nodes are hashes of their transaction, non-leaf nodes are the hashes of their children.
-//  Insert a transaction as a leaf node, then insert any new non-leaf nodes necessary to keep binary.
+// TODO
+// Return inserted node, whether that's the leaf node of txn,
+// or a parent hash node of it.
 func (t Tree) insert(txn txn.Transaction) *node {
 	txnHash := txn.GetHash()
 	prev, curr := t.root, t.root
@@ -137,4 +126,35 @@ func (t Tree) insert(txn txn.Transaction) *node {
 	t.size += 1
 
 	return n
+}
+
+// TODO
+// Recompute hashes from node up to root.
+func (t *Tree) rehash(node *node) {
+	curr := node
+
+	for curr != nil {
+
+	}
+}
+
+// Perform rb operations from node up to root.
+func (t *Tree) balance(node *node) {
+	curr := node
+
+	for curr != nil {
+		l, r := curr.leftP, curr.rightP
+		if (l != nil && l.color == BLACK) && (r != nil && r.color == RED) {
+			curr.rotateLeft()
+		}
+		if (l != nil && l.color == RED) && (l.leftP != nil && l.leftP.color == RED) {
+			curr.rotateRight()
+		}
+		if (l != nil && l.color == RED) && (r != nil && r.color == RED) {
+			curr.flipColors()
+		}
+		curr = curr.parentP
+	}
+
+	t.root.color = BLACK
 }
