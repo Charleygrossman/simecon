@@ -14,7 +14,7 @@ type block struct {
 	// createdOn is a timestamp of the block's initialization.
 	createdOn string
 	// txn is the txn stored in the block.
-	txn txn.Transaction // TODO: Stores merkle tree instead
+	txn txn.Transaction // TODO: hashtree.Tree field, instead.
 	// prev is a hash pointer string to the previous block in the blockchain.
 	prev string
 	// prevP is a pointer to the previous block in the blockchain.

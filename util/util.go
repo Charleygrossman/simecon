@@ -15,6 +15,7 @@ func MappedJson(data []byte) (map[string]interface{}, error) {
 	return m, err
 }
 
+// TODO: datetime type.
 // Now returns the current local time in the ISO 8601 format YYYY-MM-DD HH:MM:SS.
 func Now() string {
 	return strings.TrimSpace(strings.Split(time.Now().String(), "+")[0])
