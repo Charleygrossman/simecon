@@ -72,7 +72,7 @@ func (n *node) isLeaf() bool {
 func (n *node) descent() int {
 	if n.parentP == nil {
 		return -1
-	} else if n.id.String() < n.parentP.id.String() {
+	} else if n.id.String() <= n.parentP.id.String() {
 		return 0
 	} else {
 		return 1
@@ -99,61 +99,76 @@ func (t Tree) Size() uint64 {
 // Insert inserts the provided transaction as a leaf node
 // into the tree, then performs tree maintenance operations.
 func (t Tree) Insert(txn txn.Transaction) {
-	node := t.insert(txn)
-	t.balance(node)
-	t.rehash(node)
-}
-
-// TODO
-func (t Tree) insert(txn txn.Transaction) *node {
 	n := &node{
 		id:        uuid.New(),
 		createdOn: util.Now(),
-		parentP:   nil,
-		leftP:     nil,
-		rightP:    nil,
 		hash:      txn.GetHash(),
 		txn:       &txn,
 	}
-	nID := n.id.String()
+	t.insert(n)
+	t.balance(n)
+	t.rehash(n)
+}
 
-	parent, curr := t.root, t.root
-	for curr != nil {
+func (t Tree) insert(n *node) {
+	// parent is the parent of a nil child link that's
+	// the initial insertion point of the provided node.
+	parent := t.root
+	for curr := t.root; curr != nil; {
 		parent = curr
-		currID := curr.id.String()
-		if nID <= currID {
+		if n.id.String() <= curr.id.String() {
 			curr = curr.leftP
 		} else {
 			curr = curr.rightP
 		}
 	}
-	parentID := parent.id.String()
 
-	// If the parent is a leaf node, create a new node
-	// that's the parent of the node to insert and the
-	// old parent node, then insert the new parent into
-	// the position of the old.
+	// If parent is a leaf node, create a new parent node of both
+	// parent and the provided node, then insert the new parent
+	// into the position of the old parent.
 	//
-	// Otherwise, insert the node to insert as a child
-	// of the parent into the correct position.
+	// Otherwise, insert the provided node as the new child of parent.
 	if parent.isLeaf() {
+		parentParent := parent.parentP
+		parentDescent := parent.descent()
 		newParent := &node{
 			id:        uuid.New(),
 			createdOn: util.Now(),
-			hash:      n.hash,
 		}
 		newParentID := newParent.id.String()
 
-		if parentID <= newParentID {
-
+		if parent.id.String() <= newParentID {
+			newParent.leftP = parent
+			for n.id.String() <= newParentID {
+				n.id = uuid.New()
+			}
+			newParent.rightP = n
 		} else {
-
+			newParent.rightP = parent
+			for n.id.String() > newParentID {
+				n.id = uuid.New()
+			}
+			newParent.leftP = n
 		}
+		parent.parentP = newParent
+		n.parentP = newParent
+
+		if parentDescent == 0 {
+			parentParent.leftP = newParent
+		} else if parentDescent == 1 {
+			parentParent.rightP = newParent
+		} else {
+			t.root = newParent
+		}
+		newParent.parentP = parentParent
 	} else {
-
+		if parent.leftP == nil {
+			parent.leftP = n
+		} else {
+			parent.rightP = n
+		}
+		n.parentP = parent
 	}
-
-	return nil
 }
 
 // balance performs the following sequence of operations
@@ -165,8 +180,7 @@ func (t Tree) insert(txn txn.Transaction) *node {
 //
 // Finally, the root color is set to black.
 func (t *Tree) balance(node *node) {
-	curr := node
-	for curr != nil {
+	for curr := node; curr != nil; {
 		l, r := curr.leftP, curr.rightP
 		if (l != nil && l.color == BLACK) && (r != nil && r.color == RED) {
 			curr.rotateLeft()
@@ -184,8 +198,7 @@ func (t *Tree) balance(node *node) {
 
 // rehash recomputes node hashes from the provided node up to the root.
 func (t *Tree) rehash(node *node) {
-	curr := node
-	for curr != nil {
+	for curr := node; curr != nil; {
 		if !curr.isLeaf() {
 			data := ""
 			if curr.leftP != nil {
