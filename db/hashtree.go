@@ -81,19 +81,8 @@ func (n *node) descent() int {
 
 // Tree is a balanced hash tree of transactions.
 type Tree struct {
-	root *node
-	size uint64
-}
-
-// Root returns the root of the tree.
-func (t Tree) Root() *node {
-	return t.root
-}
-
-// Size returns the size of the tree,
-// which is the number of nodes.
-func (t Tree) Size() uint64 {
-	return t.size
+	Root *node
+	Size uint64
 }
 
 // Insert inserts the provided transaction as a leaf node
@@ -113,8 +102,8 @@ func (t Tree) Insert(txn txn.Transaction) {
 func (t Tree) insert(n *node) {
 	// parent is the parent of a nil child link that's
 	// the initial insertion point of the provided node.
-	parent := t.root
-	for curr := t.root; curr != nil; {
+	parent := t.Root
+	for curr := t.Root; curr != nil; {
 		parent = curr
 		if n.id.String() <= curr.id.String() {
 			curr = curr.leftP
@@ -158,7 +147,7 @@ func (t Tree) insert(n *node) {
 		} else if parentDescent == 1 {
 			parentParent.rightP = newParent
 		} else {
-			t.root = newParent
+			t.Root = newParent
 		}
 		newParent.parentP = parentParent
 	} else {
@@ -193,7 +182,7 @@ func (t *Tree) balance(node *node) {
 		}
 		curr = curr.parentP
 	}
-	t.root.color = BLACK
+	t.Root.color = BLACK
 }
 
 // rehash recomputes node hashes from the provided node up to the root.
