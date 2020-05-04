@@ -85,9 +85,10 @@ type Tree struct {
 	Size uint64
 }
 
+// TODO: Insertion into a new tree creates its root.
 // Insert inserts the provided transaction as a leaf node
 // into the tree, then performs tree maintenance operations.
-func (t Tree) Insert(txn txn.Transaction) {
+func (t *Tree) Insert(txn txn.Transaction) {
 	n := &node{
 		id:        uuid.New(),
 		createdOn: util.Now(),
@@ -99,64 +100,70 @@ func (t Tree) Insert(txn txn.Transaction) {
 	t.rehash(n)
 }
 
-func (t Tree) insert(n *node) {
+func (t *Tree) insert(n *node) {
 	// parent is the parent of a nil child link that's
 	// the initial insertion point of the provided node.
-	parent := t.Root
-	for curr := t.Root; curr != nil; {
-		parent = curr
-		if n.id.String() <= curr.id.String() {
-			curr = curr.leftP
-		} else {
-			curr = curr.rightP
-		}
-	}
-
-	// If parent is a leaf node, create a new parent node of both
-	// parent and the provided node, then insert the new parent
-	// into the position of the old parent.
-	//
-	// Otherwise, insert the provided node as the new child of parent.
-	if parent.isLeaf() {
-		parentParent := parent.parentP
-		parentDescent := parent.descent()
-		newParent := &node{
-			id:        uuid.New(),
-			createdOn: util.Now(),
-		}
-		newParentID := newParent.id.String()
-
-		if parent.id.String() <= newParentID {
-			newParent.leftP = parent
-			for n.id.String() <= newParentID {
-				n.id = uuid.New()
-			}
-			newParent.rightP = n
-		} else {
-			newParent.rightP = parent
-			for n.id.String() > newParentID {
-				n.id = uuid.New()
-			}
-			newParent.leftP = n
-		}
-		parent.parentP = newParent
-		n.parentP = newParent
-
-		if parentDescent == 0 {
-			parentParent.leftP = newParent
-		} else if parentDescent == 1 {
-			parentParent.rightP = newParent
-		} else {
-			t.Root = newParent
-		}
-		newParent.parentP = parentParent
+	if t.Root == nil {
+		t.Root = n
+		t.Size = 1
 	} else {
-		if parent.leftP == nil {
-			parent.leftP = n
-		} else {
-			parent.rightP = n
+		parent := t.Root
+		for curr := t.Root; curr != nil; {
+			parent = curr
+			if n.id.String() <= curr.id.String() {
+				curr = curr.leftP
+			} else {
+				curr = curr.rightP
+			}
 		}
-		n.parentP = parent
+
+		// If parent is a leaf node, create a new parent node of both
+		// parent and the provided node, then insert the new parent
+		// into the position of the old parent.
+		//
+		// Otherwise, insert the provided node as the new child of parent.
+		if parent.isLeaf() {
+			parentParent := parent.parentP
+			parentDescent := parent.descent()
+			newParent := &node{
+				id:        uuid.New(),
+				createdOn: util.Now(),
+			}
+			newParentID := newParent.id.String()
+
+			if parent.id.String() <= newParentID {
+				newParent.leftP = parent
+				for n.id.String() <= newParentID {
+					n.id = uuid.New()
+				}
+				newParent.rightP = n
+			} else {
+				newParent.rightP = parent
+				for n.id.String() > newParentID {
+					n.id = uuid.New()
+				}
+				newParent.leftP = n
+			}
+			parent.parentP = newParent
+			n.parentP = newParent
+
+			if parentDescent == 0 {
+				parentParent.leftP = newParent
+			} else if parentDescent == 1 {
+				parentParent.rightP = newParent
+			} else {
+				t.Root = newParent
+			}
+			newParent.parentP = parentParent
+		} else {
+			if parent.leftP == nil {
+				parent.leftP = n
+			} else {
+				parent.rightP = n
+			}
+			n.parentP = parent
+		}
+		t.Size += 1
 	}
 }
 

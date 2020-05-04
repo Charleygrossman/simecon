@@ -34,7 +34,7 @@ func TestMain(m *testing.M) {
 func TestInsertIncrementsSize(t *testing.T) {
 	tree := &Tree{}
 
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 100; i++ {
 		tree.Insert(&testTxn{})
 
 		expected := uint64(i + 1)
