@@ -137,17 +137,16 @@ func (t *Tree) insert(n *node) {
 				id:        uuid.New(),
 				createdOn: util.Now(),
 			}
-			newParentID := newParent.id.String()
 
-			if parent.id.String() <= newParentID {
+			if parent.id.String() <= newParent.id.String() {
 				newParent.leftP = parent
-				for n.id.String() <= newParentID {
+				for n.id.String() <= newParent.id.String() {
 					newParent.id = uuid.New()
 				}
 				newParent.rightP = n
 			} else {
 				newParent.rightP = parent
-				for n.id.String() > newParentID {
+				for n.id.String() > newParent.id.String() {
 					newParent.id = uuid.New()
 				}
 				newParent.leftP = n
