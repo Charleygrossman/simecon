@@ -59,15 +59,11 @@ func TestInsertMaintainsBinarySearchProperty(t *testing.T) {
 		if ok := traverse(tree.Root, func(n *node) bool {
 			if n != nil {
 				l, r := n.leftP, n.rightP
-				if l != nil {
-					if n.id.String() <= l.id.String() {
-						return false
-					}
+				if l != nil && n.id.String() <= l.id.String() {
+					return false
 				}
-				if r != nil {
-					if n.id.String() >= r.id.String() {
-						return false
-					}
+				if r != nil && n.id.String() >= r.id.String() {
+					return false
 				}
 			}
 			return true

@@ -9,6 +9,6 @@ type Transaction interface {
 type TxnType string
 
 const (
-	TestTxnType TxnType = "TestTxnType"
+	TestTxnType    TxnType = "TestTxnType"
 	TradeRequested TxnType = "TradeRequested"
 )

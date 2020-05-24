@@ -41,7 +41,6 @@ func (n *node) rotateLeft() *node {
 	x := n.rightP
 
 	n.rightP = x.leftP
-
 	x.leftP = n
 
 	x.color = n.color
@@ -54,7 +53,6 @@ func (n *node) rotateRight() *node {
 	x := n.leftP
 
 	n.leftP = x.rightP
-
 	x.rightP = n
 
 	x.color = n.color
@@ -85,7 +83,6 @@ type Tree struct {
 	Size uint64
 }
 
-// TODO: Insertion into a new tree creates its root.
 // Insert inserts the provided transaction as a leaf node
 // into the tree, then performs tree maintenance operations.
 func (t *Tree) Insert(txn txn.Transaction) {
@@ -104,6 +101,18 @@ func (t *Tree) insert(n *node) {
 	// parent is the parent of a nil child link that's
 	// the initial insertion point of the provided node.
 	if t.Root == nil {
+		// parent is the parent hash node of the root leaf node.
+		parent := &node{
+			id:        uuid.New(),
+			createdOn: util.Now(),
+			hash:      n.hash,
+		}
+		if parent.id.String() > n.id.String() {
+			parent.leftP = n
+		} else {
+			parent.rightP = n
+		}
+		n.parentP = parent
 		t.Root = n
 		t.Size = 1
 	} else {
@@ -124,7 +133,6 @@ func (t *Tree) insert(n *node) {
 		// Otherwise, insert the provided node as the new child of parent.
 		if parent.isLeaf() {
 			parentParent := parent.parentP
-			parentDescent := parent.descent()
 			newParent := &node{
 				id:        uuid.New(),
 				createdOn: util.Now(),
@@ -134,19 +142,20 @@ func (t *Tree) insert(n *node) {
 			if parent.id.String() <= newParentID {
 				newParent.leftP = parent
 				for n.id.String() <= newParentID {
-					n.id = uuid.New()
+					newParent.id = uuid.New()
 				}
 				newParent.rightP = n
 			} else {
 				newParent.rightP = parent
 				for n.id.String() > newParentID {
-					n.id = uuid.New()
+					newParent.id = uuid.New()
 				}
 				newParent.leftP = n
 			}
 			parent.parentP = newParent
 			n.parentP = newParent
 
+			parentDescent := parent.descent()
 			if parentDescent == 0 {
 				parentParent.leftP = newParent
 			} else if parentDescent == 1 {
@@ -167,6 +176,7 @@ func (t *Tree) insert(n *node) {
 	}
 }
 
+// TODO: Maintain insertion id ordering after rotations.
 // balance performs the following sequence of operations
 // from the provided node up to the root:
 //
