@@ -83,6 +83,7 @@ type Tree struct {
 	Size uint64
 }
 
+// TODO: Tree is incorrectly being built bottom-up.
 // Insert inserts the provided transaction as a leaf node
 // into the tree, then performs tree maintenance operations.
 func (t *Tree) Insert(txn txn.Transaction) {
@@ -125,7 +126,6 @@ func (t *Tree) insert(n *node) {
 				curr = curr.rightP
 			}
 		}
-
 		// If parent is a leaf node, create a new parent node of both
 		// parent and the provided node, then insert the new parent
 		// into the position of the old parent.
@@ -137,7 +137,6 @@ func (t *Tree) insert(n *node) {
 				id:        uuid.New(),
 				createdOn: util.Now(),
 			}
-
 			if parent.id.String() <= newParent.id.String() {
 				newParent.leftP = parent
 				for n.id.String() <= newParent.id.String() {
@@ -171,11 +170,10 @@ func (t *Tree) insert(n *node) {
 			}
 			n.parentP = parent
 		}
-		t.Size += 1
+		t.Size++
 	}
 }
 
-// TODO: Maintain insertion id ordering after rotations.
 // balance performs the following sequence of operations
 // from the provided node up to the root:
 //

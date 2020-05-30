@@ -1,7 +1,7 @@
 // TODO: Testing
 //  x Every transaction inserted into the tree increases tree size by 1.
-//  - Binary tree property maintained every insertion.
-//  - Insertion ids of nodes follow binary tree property.
+//  x Binary tree property maintained every insertion.
+//  x Insertion ids of nodes follow binary tree property.
 //  - Maintains logarithmic height every insertion.
 //  - No right-leaning red links after insertion.
 //  - No two adjacent left-leaning red links after insertion.
@@ -62,7 +62,7 @@ func TestInsertMaintainsBinarySearchProperty(t *testing.T) {
 				if l != nil && n.id.String() <= l.id.String() {
 					return false
 				}
-				if r != nil && n.id.String() >= r.id.String() {
+				if r != nil && n.id.String() > r.id.String() {
 					return false
 				}
 			}
@@ -70,6 +70,18 @@ func TestInsertMaintainsBinarySearchProperty(t *testing.T) {
 		}); !ok {
 			t.FailNow()
 		}
+	}
+}
+
+// TODO
+func TestInsertMaintainsLogarithmicHeight(t *testing.T) {
+	tree := &Tree{}
+
+	for i := 0; i < 100; i++ {
+		tree.Insert(&testTxn{})
+
+		count := 0
+		traverseCount(tree.Root, &count)
 	}
 }
 
@@ -84,4 +96,12 @@ func traverse(n *node, predicate func(*node) bool) bool {
 		return false
 	}
 	return true
+}
+
+func traverseCount(n *node, count *int) {
+	if n != nil {
+		(*count)++
+		traverseCount(n.leftP, count)
+		traverseCount(n.rightP, count)
+	}
 }

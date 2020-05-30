@@ -94,7 +94,7 @@ func (b *Blockchain) Len() int {
 	count := 0
 	curr := b.tail
 	for curr != nil {
-		count += 1
+		count++
 		curr = curr.prevP
 	}
 	return count
