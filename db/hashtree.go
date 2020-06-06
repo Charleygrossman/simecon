@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"github.com/google/uuid"
+	"log"
 	"tradesim/txn"
 	"tradesim/util"
 )
@@ -70,7 +71,7 @@ func (n *node) isLeaf() bool {
 func (n *node) descent() int {
 	if n.parentP == nil {
 		return -1
-	} else if n.id.String() <= n.parentP.id.String() {
+	} else if n.parentP.leftP == n {
 		return 0
 	} else {
 		return 1
@@ -83,7 +84,6 @@ type Tree struct {
 	Size uint64
 }
 
-// TODO: Tree is incorrectly being built bottom-up.
 // Insert inserts the provided transaction as a leaf node
 // into the tree, then performs tree maintenance operations.
 func (t *Tree) Insert(txn txn.Transaction) {
@@ -99,79 +99,108 @@ func (t *Tree) Insert(txn txn.Transaction) {
 }
 
 func (t *Tree) insert(n *node) {
-	// parent is the parent of a nil child link that's
-	// the initial insertion point of the provided node.
+	// If the tree doesn't have a root (it's empty),
+	// insert the provided node as the child of
+	// a new root hash node.
+	//
+	// Otherwise, traverse the tree from the root
+	// to a null link and insert the provided node.
 	if t.Root == nil {
-		// parent is the parent hash node of the root leaf node.
-		parent := &node{
+		r := &node{
 			id:        uuid.New(),
 			createdOn: util.Now(),
-			hash:      n.hash,
 		}
-		if parent.id.String() > n.id.String() {
-			parent.leftP = n
+		if r.id.String() > n.id.String() {
+			r.leftP = n
 		} else {
-			parent.rightP = n
+			r.rightP = n
 		}
-		n.parentP = parent
-		t.Root = n
-		t.Size = 1
+		n.parentP = r
+		t.Root = r
 	} else {
-		parent := t.Root
+		// p is the parent of the null child link that's
+		// the initial insertion point of the provided node.
+		p := t.Root
 		for curr := t.Root; curr != nil; {
-			parent = curr
-			if n.id.String() <= curr.id.String() {
+			p = curr
+			if curr.id.String() >= n.id.String() {
 				curr = curr.leftP
 			} else {
 				curr = curr.rightP
 			}
 		}
-		// If parent is a leaf node, create a new parent node of both
-		// parent and the provided node, then insert the new parent
+		// If p is a leaf node, create a new parent node of both
+		// p and the provided node, then insert the new parent
 		// into the position of the old parent.
 		//
-		// Otherwise, insert the provided node as the new child of parent.
-		if parent.isLeaf() {
-			parentParent := parent.parentP
+		// Otherwise, insert the provided node as the new child of p.
+		if p.isLeaf() {
+			// The new parent node of the provided node and p
+			// must be inserted into the same position as p.
+			pParent := p.parentP
+			pDescent := p.descent()
 			newParent := &node{
 				id:        uuid.New(),
 				createdOn: util.Now(),
 			}
-			if parent.id.String() <= newParent.id.String() {
-				newParent.leftP = parent
-				for n.id.String() <= newParent.id.String() {
+			if pDescent == -1 {
+				log.Fatal("parent descent of -1")
+			} else if pDescent == 0 {
+				for newParent.id.String() > pParent.id.String() {
 					newParent.id = uuid.New()
 				}
-				newParent.rightP = n
+				if newParent.id.String() > p.id.String() {
+					newParent.leftP = p
+					for newParent.id.String() > n.id.String() {
+						n.id = uuid.New()
+					}
+					newParent.rightP = n
+				} else {
+					newParent.rightP = p
+					for newParent.id.String() <= n.id.String() {
+						n.id = uuid.New()
+					}
+					newParent.leftP = n
+				}
+				pParent.leftP = newParent
 			} else {
-				newParent.rightP = parent
-				for n.id.String() > newParent.id.String() {
+				for newParent.id.String() <= pParent.id.String() {
 					newParent.id = uuid.New()
 				}
-				newParent.leftP = n
+				if newParent.id.String() > p.id.String() {
+					newParent.leftP = p
+					for newParent.id.String() > n.id.String() {
+						n.id = uuid.New()
+					}
+					newParent.rightP = n
+				} else {
+					newParent.rightP = p
+					for newParent.id.String() <= n.id.String() {
+						n.id = uuid.New()
+					}
+					newParent.leftP = n
+				}
+				pParent.rightP = newParent
 			}
-			parent.parentP = newParent
+			p.parentP = newParent
 			n.parentP = newParent
-
-			parentDescent := parent.descent()
-			if parentDescent == 0 {
-				parentParent.leftP = newParent
-			} else if parentDescent == 1 {
-				parentParent.rightP = newParent
-			} else {
-				t.Root = newParent
-			}
-			newParent.parentP = parentParent
+			newParent.parentP = pParent
 		} else {
-			if parent.leftP == nil {
-				parent.leftP = n
+			if p.leftP == nil {
+				for p.id.String() < n.id.String() {
+					n.id = uuid.New()
+				}
+				p.leftP = n
 			} else {
-				parent.rightP = n
+				for p.id.String() >= n.id.String() {
+					n.id = uuid.New()
+				}
+				p.rightP = n
 			}
-			n.parentP = parent
+			n.parentP = p
 		}
-		t.Size++
 	}
+	t.Size++
 }
 
 // balance performs the following sequence of operations
@@ -182,8 +211,8 @@ func (t *Tree) insert(n *node) {
 //     3. If both the left child and the right child are red, flip colors.
 //
 // Finally, the root color is set to black.
-func (t *Tree) balance(node *node) {
-	for curr := node; curr != nil; {
+func (t *Tree) balance(n *node) {
+	for curr := n; curr != nil; {
 		l, r := curr.leftP, curr.rightP
 		if (l != nil && l.color == BLACK) && (r != nil && r.color == RED) {
 			curr.rotateLeft()
@@ -200,8 +229,8 @@ func (t *Tree) balance(node *node) {
 }
 
 // rehash recomputes node hashes from the provided node up to the root.
-func (t *Tree) rehash(node *node) {
-	for curr := node; curr != nil; {
+func (t *Tree) rehash(n *node) {
+	for curr := n; curr != nil; {
 		if !curr.isLeaf() {
 			data := ""
 			if curr.leftP != nil {
@@ -213,5 +242,16 @@ func (t *Tree) rehash(node *node) {
 			curr.hash = fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
 		}
 		curr = curr.parentP
+	}
+}
+
+// NewTree returns a new tree with a
+// root node without a hash or transaction.
+func NewTree() *Tree {
+	return &Tree{
+		Root: &node{
+			id:        uuid.New(),
+			createdOn: util.Now(),
+		},
 	}
 }

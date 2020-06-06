@@ -1,11 +1,12 @@
 // TODO: Testing
 //  x Every transaction inserted into the tree increases tree size by 1.
-//  x Binary tree property maintained every insertion.
-//  x Insertion ids of nodes follow binary tree property.
+//  x Binary tree property maintained every insertion;
+//    Insertion ids of nodes follow binary tree property.
 //  - Maintains logarithmic height every insertion.
 //  - No right-leaning red links after insertion.
 //  - No two adjacent left-leaning red links after insertion.
-//  - All black link paths from root to leaf have same length.
+//  - All paths from root to null link have same number of black links
+//    (perfect black balance)
 //  - Benchmark tests for runtime of operations.
 package db
 
@@ -35,7 +36,7 @@ func TestMain(m *testing.M) {
 // TestInsertIncrementsSize asserts that every insertion into a tree
 // increases its size, or number of nodes, by one.
 func TestInsertIncrementsSize(t *testing.T) {
-	tree := &Tree{}
+	tree := NewTree()
 
 	for i := 0; i < 100; i++ {
 		tree.Insert(&testTxn{})
@@ -51,7 +52,7 @@ func TestInsertIncrementsSize(t *testing.T) {
 // maintains the binary search tree property; that is, the insertion id of
 // the root of any subtree is greater than its left child, and less than its right.
 func TestInsertMaintainsBinarySearchProperty(t *testing.T) {
-	tree := &Tree{}
+	tree := NewTree()
 
 	for i := 0; i < 100; i++ {
 		tree.Insert(&testTxn{})
@@ -73,9 +74,9 @@ func TestInsertMaintainsBinarySearchProperty(t *testing.T) {
 	}
 }
 
-// TODO
+// TODO: Criterion is ratio of node count (hash and leaf) to height.
 func TestInsertMaintainsLogarithmicHeight(t *testing.T) {
-	tree := &Tree{}
+	tree := NewTree()
 
 	for i := 0; i < 100; i++ {
 		tree.Insert(&testTxn{})
