@@ -2,11 +2,11 @@
 //  x Every transaction inserted into the tree increases tree size by 1.
 //  x Binary tree property maintained every insertion;
 //    Insertion ids of nodes follow binary tree property.
-//  - Maintains logarithmic height every insertion.
-//  - No right-leaning red links after insertion.
-//  - No two adjacent left-leaning red links after insertion.
+//  x No right-leaning red links after insertion.
+//  x No two adjacent left-leaning red links after insertion.
 //  - All paths from root to null link have same number of black links
 //    (perfect black balance)
+//  - Maintains logarithmic height every insertion.
 //  - Benchmark tests for runtime of operations.
 package db
 
@@ -34,7 +34,7 @@ func TestMain(m *testing.M) {
 }
 
 // TestInsertIncrementsSize asserts that every insertion into a tree
-// increases its size, or number of nodes, by one.
+// increases its size (number of leaf nodes) by one.
 func TestInsertIncrementsSize(t *testing.T) {
 	tree := NewTree()
 
@@ -64,6 +64,52 @@ func TestInsertMaintainsBinarySearchProperty(t *testing.T) {
 					return false
 				}
 				if r != nil && n.id.String() > r.id.String() {
+					return false
+				}
+			}
+			return true
+		}); !ok {
+			t.FailNow()
+		}
+	}
+}
+
+// TestNoAdjacentLeftLeaningRedLinks asserts that insertion into a tree
+// maintains the red-black tree property that there are no two adjacent,
+// left-leaning nodes both with red links to their parent.
+func TestNoAdjacentLeftLeaningRedLinks(t *testing.T) {
+	tree := NewTree()
+
+	for i := 0; i < 100; i++ {
+		tree.Insert(&testTxn{})
+
+		if ok := traverse(tree.Root, func(n *node) bool {
+			if n != nil {
+				l := n.leftP
+				if l != nil && l.leftP != nil && l.color == RED && l.leftP.color == RED {
+					return false
+				}
+			}
+			return true
+		}); !ok {
+			t.FailNow()
+		}
+	}
+}
+
+// TestNoRightLeaningRedLinks asserts that insertion into a tree
+// maintains the red-black tree property that there are no right-leaning
+// nodes with red links to their parent.
+func TestNoRightLeaningRedLinks(t *testing.T) {
+	tree := NewTree()
+
+	for i := 0; i < 100; i++ {
+		tree.Insert(&testTxn{})
+
+		if ok := traverse(tree.Root, func(n *node) bool {
+			if n != nil {
+				r := n.rightP
+				if r != nil && r.color == RED {
 					return false
 				}
 			}

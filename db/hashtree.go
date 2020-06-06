@@ -80,7 +80,9 @@ func (n *node) descent() int {
 
 // Tree is a balanced hash tree of transactions.
 type Tree struct {
+	// Root is the root hash node of the tree.
 	Root *node
+	// Size is the number of leaf nodes in the tree.
 	Size uint64
 }
 
