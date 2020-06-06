@@ -78,6 +78,40 @@ func (n *node) descent() int {
 	}
 }
 
+// insertChild assigns the provided node c
+// as either the left or right child of the node,
+// with regard to the binary search tree property.
+func (n *node) insertChild(c *node) {
+	if c.id.String() <= n.id.String() {
+		n.leftP = c
+	} else {
+		n.rightP = c
+	}
+	c.parentP = n
+}
+
+// insertLeftChild assigns the provided node c
+// as the left child of the node, while maintaining
+// the binary search tree property.
+func (n *node) insertLeftChild(c *node) {
+	for c.id.String() > n.id.String() {
+		c.id = uuid.New()
+	}
+	n.leftP = c
+	c.parentP = n
+}
+
+// insertRightChild assigns the provided node c
+// as the right of child the node, while maintaining
+// the binary search tree property.
+func (n *node) insertRightChild(c *node) {
+	for c.id.String() <= n.id.String() {
+		c.id = uuid.New()
+	}
+	n.rightP = c
+	c.parentP = n
+}
+
 // Tree is a balanced hash tree of transactions.
 type Tree struct {
 	// Root is the root hash node of the tree.
@@ -89,12 +123,9 @@ type Tree struct {
 // Insert inserts the provided transaction as a leaf node
 // into the tree, then performs tree maintenance operations.
 func (t *Tree) Insert(txn txn.Transaction) {
-	n := &node{
-		id:        uuid.New(),
-		createdOn: util.Now(),
-		hash:      txn.GetHash(),
-		txn:       &txn,
-	}
+	n := newNode()
+	n.hash = txn.GetHash()
+	n.txn = &txn
 	t.insert(n)
 	t.balance(n)
 	t.rehash(n)
@@ -108,16 +139,8 @@ func (t *Tree) insert(n *node) {
 	// Otherwise, traverse the tree from the root
 	// to a null link and insert the provided node.
 	if t.Root == nil {
-		r := &node{
-			id:        uuid.New(),
-			createdOn: util.Now(),
-		}
-		if r.id.String() > n.id.String() {
-			r.leftP = n
-		} else {
-			r.rightP = n
-		}
-		n.parentP = r
+		r := newNode()
+		r.insertChild(n)
 		t.Root = r
 	} else {
 		// p is the parent of the null child link that's
@@ -137,69 +160,39 @@ func (t *Tree) insert(n *node) {
 		//
 		// Otherwise, insert the provided node as the new child of p.
 		if p.isLeaf() {
-			// The new parent node of the provided node and p
-			// must be inserted into the same position as p.
+			// newParent is the new parent node of the provided node
+			// and p; it must be inserted into the same position as p.
+			newParent := newNode()
 			pParent := p.parentP
 			pDescent := p.descent()
-			newParent := &node{
-				id:        uuid.New(),
-				createdOn: util.Now(),
-			}
 			if pDescent == -1 {
-				log.Fatal("parent descent of -1")
+				log.Fatal("leaf node must have a parent node")
 			} else if pDescent == 0 {
-				for newParent.id.String() > pParent.id.String() {
-					newParent.id = uuid.New()
-				}
-				if newParent.id.String() > p.id.String() {
-					newParent.leftP = p
-					for newParent.id.String() > n.id.String() {
-						n.id = uuid.New()
-					}
-					newParent.rightP = n
+				pParent.insertLeftChild(newParent)
+				if p.id.String() <= newParent.id.String() {
+					newParent.insertLeftChild(p)
+					newParent.insertRightChild(n)
 				} else {
-					newParent.rightP = p
-					for newParent.id.String() <= n.id.String() {
-						n.id = uuid.New()
-					}
-					newParent.leftP = n
+					newParent.insertLeftChild(n)
+					newParent.insertRightChild(p)
 				}
-				pParent.leftP = newParent
 			} else {
-				for newParent.id.String() <= pParent.id.String() {
-					newParent.id = uuid.New()
-				}
-				if newParent.id.String() > p.id.String() {
-					newParent.leftP = p
-					for newParent.id.String() > n.id.String() {
-						n.id = uuid.New()
-					}
-					newParent.rightP = n
+				pParent.insertRightChild(newParent)
+				if p.id.String() <= newParent.id.String() {
+					newParent.insertLeftChild(p)
+					newParent.insertRightChild(n)
 				} else {
-					newParent.rightP = p
-					for newParent.id.String() <= n.id.String() {
-						n.id = uuid.New()
-					}
-					newParent.leftP = n
+					newParent.insertLeftChild(n)
+					newParent.insertRightChild(p)
 				}
-				pParent.rightP = newParent
 			}
-			p.parentP = newParent
-			n.parentP = newParent
-			newParent.parentP = pParent
 		} else {
+			// TODO: This favors left links; introduce randomness.
 			if p.leftP == nil {
-				for p.id.String() < n.id.String() {
-					n.id = uuid.New()
-				}
-				p.leftP = n
+				p.insertLeftChild(n)
 			} else {
-				for p.id.String() >= n.id.String() {
-					n.id = uuid.New()
-				}
-				p.rightP = n
+				p.insertRightChild(n)
 			}
-			n.parentP = p
 		}
 	}
 	t.Size++
@@ -244,6 +237,15 @@ func (t *Tree) rehash(n *node) {
 			curr.hash = fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
 		}
 		curr = curr.parentP
+	}
+}
+
+// newNode returns a new node
+// without a hash or transaction.
+func newNode() *node {
+	return &node{
+		id:        uuid.New(),
+		createdOn: util.Now(),
 	}
 }
 

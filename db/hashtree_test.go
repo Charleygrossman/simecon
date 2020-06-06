@@ -120,6 +120,18 @@ func TestNoRightLeaningRedLinks(t *testing.T) {
 	}
 }
 
+// TODO
+// TestPerfectBlackBalance asserts that insertion into a tree
+// maintains the red-black tree property that all paths from
+// root to a null link have same number of black links.
+func TestPerfectBlackBalance(t *testing.T) {
+	tree := NewTree()
+
+	for i := 0; i < 100; i++ {
+		tree.Insert(&testTxn{})
+	}
+}
+
 // TODO: Criterion is ratio of node count (hash and leaf) to height.
 func TestInsertMaintainsLogarithmicHeight(t *testing.T) {
 	tree := NewTree()
