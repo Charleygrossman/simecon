@@ -9,6 +9,7 @@ import (
 	"tradesim/util"
 )
 
+// color represents red and black links in a red-black binary search tree.
 type color bool
 
 const (
@@ -16,16 +17,24 @@ const (
 	BLACK color = false
 )
 
-// TODO: leaf vs. hash node separation.
+// node represents a node within a tree.
 type node struct {
-	id        uuid.UUID
+	// key is the value keyed on when performing binary search within the node's tree.
+	key uuid.UUID
+	// createdOn represents the time of the node's initialization.
 	createdOn string
-	color     color
-	parentP   *node
-	leftP     *node
-	rightP    *node
-	hash      string
-	txn       *txn.Transaction
+	// color determines whether the node has a red or black link to its parent node.
+	color color
+	// parentP is a pointer to the node's parent node.
+	parentP *node
+	// leftP is a pointer to the node's left child node.
+	leftP *node
+	// rightP is a pointer to the node's right child node.
+	rightP *node
+	// hash represents the hash pointer of the node.
+	hash string
+	// txn is the transaction of the node, which is null if the node is a hash node.
+	txn *txn.Transaction
 }
 
 func (n *node) flipColors() {
@@ -62,10 +71,6 @@ func (n *node) rotateRight() *node {
 	return x
 }
 
-func (n *node) isLeaf() bool {
-	return n.txn != nil
-}
-
 // descent returns 0 if the node is the left child of its parent,
 // 1 if it's the right child, and -1 if it has no parent.
 func (n *node) descent() int {
@@ -78,11 +83,18 @@ func (n *node) descent() int {
 	}
 }
 
+// hasTxn returns whether the node has a transaction.
+// Any node with a transaction must be a leaf node of its tree,
+// but not all leaf nodes must have a transaction.
+func (n *node) hasTxn() bool {
+	return n.txn != nil
+}
+
 // insertChild assigns the provided node c
 // as either the left or right child of the node,
 // with regard to the binary search tree property.
 func (n *node) insertChild(c *node) {
-	if c.id.String() <= n.id.String() {
+	if c.key.String() <= n.key.String() {
 		n.leftP = c
 	} else {
 		n.rightP = c
@@ -94,8 +106,8 @@ func (n *node) insertChild(c *node) {
 // as the left child of the node, while maintaining
 // the binary search tree property.
 func (n *node) insertLeftChild(c *node) {
-	for c.id.String() > n.id.String() {
-		c.id = uuid.New()
+	for c.key.String() > n.key.String() {
+		c.key = uuid.New()
 	}
 	n.leftP = c
 	c.parentP = n
@@ -105,27 +117,35 @@ func (n *node) insertLeftChild(c *node) {
 // as the right of child the node, while maintaining
 // the binary search tree property.
 func (n *node) insertRightChild(c *node) {
-	for c.id.String() <= n.id.String() {
-		c.id = uuid.New()
+	for c.key.String() <= n.key.String() {
+		c.key = uuid.New()
 	}
 	n.rightP = c
 	c.parentP = n
+}
+
+// newNode returns a node initialized
+// without a hash or transaction.
+func newNode() *node {
+	return &node{
+		key:       uuid.New(),
+		createdOn: util.Now(),
+	}
 }
 
 // Tree is a balanced hash tree of transactions.
 type Tree struct {
 	// Root is the root hash node of the tree.
 	Root *node
-	// Size is the number of leaf nodes in the tree.
+	// Size is the number of nodes with transactions in the tree.
 	Size uint64
 }
 
-// Insert inserts the provided transaction as a leaf node
-// into the tree, then performs tree maintenance operations.
+// Insert inserts the provided transaction as a leaf node into the tree.
 func (t *Tree) Insert(txn txn.Transaction) {
 	n := newNode()
-	n.hash = txn.GetHash()
 	n.txn = &txn
+	n.hash = txn.GetHash()
 	t.insert(n)
 	t.balance(n)
 	t.rehash(n)
@@ -148,18 +168,18 @@ func (t *Tree) insert(n *node) {
 		p := t.Root
 		for curr := t.Root; curr != nil; {
 			p = curr
-			if curr.id.String() >= n.id.String() {
+			if curr.key.String() >= n.key.String() {
 				curr = curr.leftP
 			} else {
 				curr = curr.rightP
 			}
 		}
-		// If p is a leaf node, create a new parent node of both
+		// If p has a transaction, create a new parent node of both
 		// p and the provided node, then insert the new parent
 		// into the position of the old parent.
 		//
 		// Otherwise, insert the provided node as the new child of p.
-		if p.isLeaf() {
+		if p.hasTxn() {
 			// newParent is the new parent node of the provided node
 			// and p; it must be inserted into the same position as p.
 			newParent := newNode()
@@ -169,7 +189,7 @@ func (t *Tree) insert(n *node) {
 				log.Fatal("leaf node must have a parent node")
 			} else if pDescent == 0 {
 				pParent.insertLeftChild(newParent)
-				if p.id.String() <= newParent.id.String() {
+				if p.key.String() <= newParent.key.String() {
 					newParent.insertLeftChild(p)
 					newParent.insertRightChild(n)
 				} else {
@@ -178,7 +198,7 @@ func (t *Tree) insert(n *node) {
 				}
 			} else {
 				pParent.insertRightChild(newParent)
-				if p.id.String() <= newParent.id.String() {
+				if p.key.String() <= newParent.key.String() {
 					newParent.insertLeftChild(p)
 					newParent.insertRightChild(n)
 				} else {
@@ -226,7 +246,7 @@ func (t *Tree) balance(n *node) {
 // rehash recomputes node hashes from the provided node up to the root.
 func (t *Tree) rehash(n *node) {
 	for curr := n; curr != nil; {
-		if !curr.isLeaf() {
+		if !curr.hasTxn() {
 			data := ""
 			if curr.leftP != nil {
 				data += curr.leftP.hash
@@ -240,21 +260,12 @@ func (t *Tree) rehash(n *node) {
 	}
 }
 
-// newNode returns a new node
-// without a hash or transaction.
-func newNode() *node {
-	return &node{
-		id:        uuid.New(),
-		createdOn: util.Now(),
-	}
-}
-
-// NewTree returns a new tree with a
-// root node without a hash or transaction.
+// NewTree returns a tree initialized with
+// a root node without a hash or transaction.
 func NewTree() *Tree {
 	return &Tree{
 		Root: &node{
-			id:        uuid.New(),
+			key:       uuid.New(),
 			createdOn: util.Now(),
 		},
 	}

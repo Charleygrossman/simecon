@@ -1,13 +1,3 @@
-// TODO: Testing
-//  x Every transaction inserted into the tree increases tree size by 1.
-//  x Binary tree property maintained every insertion;
-//    Insertion ids of nodes follow binary tree property.
-//  x No right-leaning red links after insertion.
-//  x No two adjacent left-leaning red links after insertion.
-//  - All paths from root to null link have same number of black links
-//    (perfect black balance)
-//  - Maintains logarithmic height every insertion.
-//  - Benchmark tests for runtime of operations.
 package db
 
 import (
@@ -49,8 +39,8 @@ func TestInsertIncrementsSize(t *testing.T) {
 }
 
 // TestInsertMaintainsBinarySearchProperty asserts that insertion into a tree
-// maintains the binary search tree property; that is, the insertion id of
-// the root of any subtree is greater than its left child, and less than its right.
+// maintains the binary search tree property; that is, the key of the root
+// of any subtree is greater than its left child, and less than its right.
 func TestInsertMaintainsBinarySearchProperty(t *testing.T) {
 	tree := NewTree()
 
@@ -60,10 +50,10 @@ func TestInsertMaintainsBinarySearchProperty(t *testing.T) {
 		if ok := traverse(tree.Root, func(n *node) bool {
 			if n != nil {
 				l, r := n.leftP, n.rightP
-				if l != nil && n.id.String() <= l.id.String() {
+				if l != nil && n.key.String() <= l.key.String() {
 					return false
 				}
-				if r != nil && n.id.String() > r.id.String() {
+				if r != nil && n.key.String() > r.key.String() {
 					return false
 				}
 			}
