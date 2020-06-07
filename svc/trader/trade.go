@@ -7,24 +7,24 @@ import (
 	"tradesim/txn"
 )
 
-// ccy represents a currency code.
+// Ccy represents a currency code.
 type Ccy string
 
 const (
-	// United States Dollar
+	// USD represents the United States Dollar.
 	USD Ccy = "USD"
-	// Renminbi (Chinese Yuan)
+	// CNY represents the Chinese Yuan (Renminbi).
 	CNY Ccy = "CNY"
-	// Euro
+	// EUR represents the European Euro.
 	EUR Ccy = "EUR"
-	// Pound Sterling
+	// GBP represents the British Pound Sterling.
 	GBP Ccy = "GBP"
-	// Japanese Yen
+	// JPY represents the Japanese Yen.
 	JPY Ccy = "JPY"
 )
 
-// trade is a type of txn
-// that involves "from" and "to" traders
+// trade represents a type of transaction
+// that involves "from" and "to" traders,
 // as well as the thing being traded.
 type trade struct {
 	tradeEntity tradeEntity
@@ -43,11 +43,7 @@ func (t trade) GetHash() string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
 }
 
-func (t trade) getCreatedOn() string {
-	return t.createdOn
-}
-
-// tradeEntity is a thing traded for, including cash and goods.
+// tradeEntity represents a thing traded for, including cash and goods.
 type tradeEntity interface {
 	// value returns the cash quantity of the provided currency
 	// of the tradeEntity. The boolean return value distinguishes
