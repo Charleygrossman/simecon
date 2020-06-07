@@ -8,19 +8,15 @@ import (
 	"tradesim/txn"
 )
 
-type testTxn struct{}
+type testTreeTxn struct{}
 
-func (_ *testTxn) GetHash() string {
+func (_ *testTreeTxn) GetHash() string {
 	data := uuid.New().String()
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
 }
 
-func (_ *testTxn) GetTxnType() txn.TxnType {
+func (_ *testTreeTxn) GetTxnType() txn.TxnType {
 	return txn.TestTxnType
-}
-
-func TestMain(m *testing.M) {
-	m.Run()
 }
 
 // TestInsertIncrementsSize asserts that every insertion into a tree
@@ -29,7 +25,7 @@ func TestInsertIncrementsSize(t *testing.T) {
 	tree := NewTree()
 
 	for i := 0; i < 100; i++ {
-		tree.Insert(&testTxn{})
+		tree.Insert(&testTreeTxn{})
 
 		expected := uint64(i + 1)
 		if actual := tree.Size; expected != actual {
@@ -45,7 +41,7 @@ func TestInsertMaintainsBinarySearchProperty(t *testing.T) {
 	tree := NewTree()
 
 	for i := 0; i < 100; i++ {
-		tree.Insert(&testTxn{})
+		tree.Insert(&testTreeTxn{})
 
 		if ok := traverse(tree.Root, func(n *node) bool {
 			if n != nil {
@@ -71,7 +67,7 @@ func TestNoAdjacentLeftLeaningRedLinks(t *testing.T) {
 	tree := NewTree()
 
 	for i := 0; i < 100; i++ {
-		tree.Insert(&testTxn{})
+		tree.Insert(&testTreeTxn{})
 
 		if ok := traverse(tree.Root, func(n *node) bool {
 			if n != nil {
@@ -94,7 +90,7 @@ func TestNoRightLeaningRedLinks(t *testing.T) {
 	tree := NewTree()
 
 	for i := 0; i < 100; i++ {
-		tree.Insert(&testTxn{})
+		tree.Insert(&testTreeTxn{})
 
 		if ok := traverse(tree.Root, func(n *node) bool {
 			if n != nil {
@@ -118,7 +114,7 @@ func TestPerfectBlackBalance(t *testing.T) {
 	tree := NewTree()
 
 	for i := 0; i < 100; i++ {
-		tree.Insert(&testTxn{})
+		tree.Insert(&testTreeTxn{})
 	}
 }
 
@@ -127,7 +123,7 @@ func TestInsertMaintainsLogarithmicHeight(t *testing.T) {
 	tree := NewTree()
 
 	for i := 0; i < 100; i++ {
-		tree.Insert(&testTxn{})
+		tree.Insert(&testTreeTxn{})
 
 		count := 0
 		traverseCount(tree.Root, &count)
