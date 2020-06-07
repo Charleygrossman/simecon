@@ -1,9 +1,6 @@
 package trader
 
 import (
-	"crypto/sha256"
-	"fmt"
-	"strconv"
 	"tradesim/txn"
 )
 
@@ -23,10 +20,10 @@ const (
 	JPY Ccy = "JPY"
 )
 
-// trade represents a type of transaction
+// Trade represents a type of transaction
 // that involves "from" and "to" traders,
 // as well as the thing being traded.
-type trade struct {
+type Trade struct {
 	tradeEntity tradeEntity
 	from        uint64
 	to          uint64
@@ -34,13 +31,13 @@ type trade struct {
 	createdOn   string
 }
 
-func (t trade) GetTxnType() txn.TxnType {
-	return t.txnType
-}
-
-func (t trade) GetHash() string {
-	data := strconv.FormatUint(t.from, 10) + strconv.FormatUint(t.to, 10) + string(t.txnType)
-	return fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
+func (t *Trade) Request(arg txn.TxnType, reply *bool) error {
+	if arg == txn.TradeRequested {
+		*reply = true
+	} else {
+		*reply = false
+	}
+	return nil
 }
 
 // tradeEntity represents a thing traded for, including cash and goods.
