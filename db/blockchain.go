@@ -25,10 +25,9 @@ type block struct {
 	txnTree *Tree
 }
 
-// TODO: Hash transaction tree data.
 // setPrev sets the block's hash pointer to the hash of
 // the previous block's initialization timestamp,
-// transaction tree, and a high min-entropy nonce as a string.
+// transaction tree root hash, and a high min-entropy nonce string.
 func (b *block) setPrev() bool {
 	// prev must only be set if the underlying
 	// previous pointer points to another block.
@@ -37,12 +36,12 @@ func (b *block) setPrev() bool {
 	if b.prevP == nil {
 		return false
 	} else {
-		p := b.prevP
 		nonce, err := rand.Int(rand.Reader, maxint64)
 		if err != nil {
 			return false
 		}
-		data := p.createdOn + nonce.String()
+		p := b.prevP
+		data := p.createdOn + p.txnTree.Root.hash + nonce.String()
 		b.prev = fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
 		return true
 	}
@@ -120,8 +119,9 @@ func (b *Blockchain) string() string {
 // NewBlockchain returns a blockchain initialized with a genesis block.
 func NewBlockchain() *Blockchain {
 	gen := &block{
-		prev:      strings.Repeat("0", 64),
 		createdOn: util.Now(),
+		prev:      strings.Repeat("0", 64),
+		txnTree:   NewTree(),
 	}
 	return &Blockchain{head: gen, tail: gen}
 }
