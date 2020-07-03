@@ -3,30 +3,31 @@ package main
 import (
 	"log"
 	"tradesim/svc"
-	"tradesim/svc/trader"
+	"tradesim/trade"
 	"tradesim/txn"
 )
 
 func main() {
 	pipe := svc.NewPipeRW()
+	defer func() {
+		if err := pipe.Close(); err != nil {
+			log.Fatal(err)
+		}
+	}()
 
-	a := trader.NewTrader(pipe)
-	if err := a.Server.Register(&trader.Trade{}); err != nil {
+	a := trade.NewTrader(pipe)
+	if err := a.Server.Register(&trade.Trade{}); err != nil {
 		log.Fatal(err)
 	}
 	go a.Server.ServeConn(pipe)
 
-	b := trader.NewTrader(pipe)
+	b := trade.NewTrader(pipe)
 	var ok bool
 	if err := b.Client.Call("Trade.Request", txn.TradeRequested, &ok); err != nil {
 		log.Fatal(err)
 	}
 	log.Print(ok)
-
 	if err := b.Client.Close(); err != nil {
-		log.Fatal(err)
-	}
-	if err := pipe.Close(); err != nil {
 		log.Fatal(err)
 	}
 }
