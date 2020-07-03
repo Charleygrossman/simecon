@@ -88,7 +88,10 @@ func TestInsertMaintainsHashPointers(t *testing.T) {
 }
 
 // TODO
-func TestInsertMaintainsLogarithmicHeight(t *testing.T) {}
+// TestPerfectBlackBalance asserts that insertion into a tree
+// maintains the red-black tree property that all paths from
+// root to a null link have same number of black links.
+func TestPerfectBlackBalance(t *testing.T) {}
 
 // TODO
 // TestNoAdjacentLeftLeaningRedLinks asserts that insertion into a tree
@@ -139,16 +142,7 @@ func TestNoRightLeaningRedLinks(t *testing.T) {
 }
 
 // TODO
-// TestPerfectBlackBalance asserts that insertion into a tree
-// maintains the red-black tree property that all paths from
-// root to a null link have same number of black links.
-func TestPerfectBlackBalance(t *testing.T) {
-	tree := NewTree()
-
-	for i := 0; i < 100; i++ {
-		tree.Insert(&testTreeTxn{})
-	}
-}
+func TestInsertMaintainsLogarithmicHeight(t *testing.T) {}
 
 // traverse recursively traverses the tree from the provided node,
 // terminating early and returning false if the provided predicate
