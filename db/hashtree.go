@@ -215,22 +215,15 @@ func (t *Tree) insert(n *node) {
 				log.Fatal("leaf node must have a parent node")
 			} else if pDescent == 0 {
 				pParent.insertLeftChild(newParent)
-				if p.key.String() <= newParent.key.String() {
-					newParent.insertLeftChild(p)
-					newParent.insertRightChild(n)
-				} else {
-					newParent.insertLeftChild(n)
-					newParent.insertRightChild(p)
-				}
 			} else {
 				pParent.insertRightChild(newParent)
-				if p.key.String() <= newParent.key.String() {
-					newParent.insertLeftChild(p)
-					newParent.insertRightChild(n)
-				} else {
-					newParent.insertLeftChild(n)
-					newParent.insertRightChild(p)
-				}
+			}
+			if p.key.String() <= newParent.key.String() {
+				newParent.insertLeftChild(p)
+				newParent.insertRightChild(n)
+			} else {
+				newParent.insertLeftChild(n)
+				newParent.insertRightChild(p)
 			}
 		} else {
 			// TODO: This favors left links; introduce randomness.
@@ -253,8 +246,7 @@ func (t *Tree) insert(n *node) {
 //     3. If both the left child and the right child are red, flip colors.
 //
 // Finally, the root color is set to black.
-func (t *Tree) balance(n *node) *node {
-	var root *node
+func (t *Tree) balance(n *node) {
 	for curr := n; curr != nil; {
 		l, r := curr.leftP, curr.rightP
 		if (l == nil || l.color == BLACK) && (r != nil && r.color == RED) {
@@ -268,17 +260,16 @@ func (t *Tree) balance(n *node) *node {
 		if (l != nil && l.color == RED) && (r != nil && r.color == RED) {
 			curr.flipColors()
 		}
-		root = curr
 		curr = curr.parentP
 	}
-	return root
+	t.Root.color = BLACK
 }
 
 // rehash recomputes node hashes from the provided node up to the root.
 func (t *Tree) rehash(n *node) {
 	for curr := n; curr != nil; {
 		if !curr.hasTxn() {
-			data := ""
+			var data string
 			if curr.leftP != nil {
 				data += curr.leftP.hash
 			}

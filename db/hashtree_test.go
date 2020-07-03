@@ -60,14 +60,37 @@ func TestInsertMaintainsBinarySearchProperty(t *testing.T) {
 	}
 }
 
-// TODO
 // TestHashPointers asserts that insertion into a tree
-// maintains the correct hash of the root node of every subtree.
-func TestInsertMaintainsHashPointers(t *testing.T) {}
+// maintains the correct hash of every hash node.
+func TestInsertMaintainsHashPointers(t *testing.T) {
+	tree := NewTree()
+
+	for i := 0; i < 100; i++ {
+		tree.Insert(&testTreeTxn{})
+
+		if ok := traverse(tree.Root, func(n *node) bool {
+			if n != nil && !n.hasTxn() {
+				var data, hash string
+				if n.leftP != nil {
+					data += n.leftP.hash
+				}
+				if n.rightP != nil {
+					data += n.rightP.hash
+				}
+				hash = fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
+				return n.hash == hash
+			}
+			return true
+		}); !ok {
+			t.FailNow()
+		}
+	}
+}
 
 // TODO
 func TestInsertMaintainsLogarithmicHeight(t *testing.T) {}
 
+// TODO
 // TestNoAdjacentLeftLeaningRedLinks asserts that insertion into a tree
 // maintains the red-black tree property that there are no two adjacent,
 // left-leaning nodes both with red links to their parent.
@@ -91,6 +114,7 @@ func TestNoAdjacentLeftLeaningRedLinks(t *testing.T) {
 	}
 }
 
+// TODO
 // TestNoRightLeaningRedLinks asserts that insertion into a tree
 // maintains the red-black tree property that there are no right-leaning
 // nodes with red links to their parent.
@@ -118,7 +142,13 @@ func TestNoRightLeaningRedLinks(t *testing.T) {
 // TestPerfectBlackBalance asserts that insertion into a tree
 // maintains the red-black tree property that all paths from
 // root to a null link have same number of black links.
-func TestPerfectBlackBalance(t *testing.T) {}
+func TestPerfectBlackBalance(t *testing.T) {
+	tree := NewTree()
+
+	for i := 0; i < 100; i++ {
+		tree.Insert(&testTreeTxn{})
+	}
+}
 
 // traverse recursively traverses the tree from the provided node,
 // terminating early and returning false if the provided predicate
