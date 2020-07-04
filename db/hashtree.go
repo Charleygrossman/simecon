@@ -69,6 +69,7 @@ func (n *node) insertChild(c *node) {
 		n.rightP = c
 	}
 	c.parentP = n
+	c.color = RED
 }
 
 // insertLeftChild assigns the provided node c
@@ -83,6 +84,7 @@ func (n *node) insertLeftChild(c *node) {
 	}
 	n.leftP = c
 	c.parentP = n
+	c.color = RED
 }
 
 // insertRightChild assigns the provided node c
@@ -97,6 +99,7 @@ func (n *node) insertRightChild(c *node) {
 	}
 	n.rightP = c
 	c.parentP = n
+	c.color = RED
 }
 
 func (n *node) flipColors() {
@@ -110,6 +113,7 @@ func (n *node) flipColors() {
 }
 
 func (n *node) rotateLeft() *node {
+	parentP := n.parentP
 	nDescent := n.descent()
 	x := n.rightP
 
@@ -119,9 +123,9 @@ func (n *node) rotateLeft() *node {
 	if nDescent == -1 {
 		x.parentP = nil
 	} else if nDescent == 0 {
-		n.parentP.insertLeftChild(x)
+		parentP.insertLeftChild(x)
 	} else {
-		n.parentP.insertRightChild(x)
+		parentP.insertRightChild(x)
 	}
 
 	x.color = n.color
@@ -131,6 +135,7 @@ func (n *node) rotateLeft() *node {
 }
 
 func (n *node) rotateRight() *node {
+	parentP := n.parentP
 	nDescent := n.descent()
 	x := n.leftP
 
@@ -140,9 +145,9 @@ func (n *node) rotateRight() *node {
 	if nDescent == -1 {
 		x.parentP = nil
 	} else if nDescent == 0 {
-		n.parentP.insertLeftChild(x)
+		parentP.insertLeftChild(x)
 	} else {
-		n.parentP.insertRightChild(x)
+		parentP.insertRightChild(x)
 	}
 
 	x.color = n.color
@@ -174,6 +179,7 @@ func (t *Tree) Insert(txn txn.Transaction) {
 	n.txn = &txn
 	n.hash = txn.GetHash()
 	t.insert(n)
+	t.balance(n)
 	t.rehash(n)
 }
 
