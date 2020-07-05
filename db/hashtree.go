@@ -69,7 +69,6 @@ func (n *node) insertChild(c *node) {
 		n.rightP = c
 	}
 	c.parentP = n
-	c.color = RED
 }
 
 // insertLeftChild assigns the provided node c
@@ -84,7 +83,6 @@ func (n *node) insertLeftChild(c *node) {
 	}
 	n.leftP = c
 	c.parentP = n
-	c.color = RED
 }
 
 // insertRightChild assigns the provided node c
@@ -99,17 +97,12 @@ func (n *node) insertRightChild(c *node) {
 	}
 	n.rightP = c
 	c.parentP = n
-	c.color = RED
 }
 
 func (n *node) flipColors() {
 	n.color = RED
-	if n.leftP != nil {
-		n.leftP.color = BLACK
-	}
-	if n.rightP != nil {
-		n.rightP.color = BLACK
-	}
+	n.leftP.color = BLACK
+	n.rightP.color = BLACK
 }
 
 func (n *node) rotateLeft() *node {
@@ -120,12 +113,12 @@ func (n *node) rotateLeft() *node {
 	n.insertRightChild(x.leftP)
 	x.insertLeftChild(n)
 
-	if nDescent == -1 {
-		x.parentP = nil
-	} else if nDescent == 0 {
+	if nDescent == 0 {
 		parentP.insertLeftChild(x)
-	} else {
+	} else if nDescent == 1 {
 		parentP.insertRightChild(x)
+	} else {
+		x.parentP = nil
 	}
 
 	x.color = n.color
@@ -142,12 +135,12 @@ func (n *node) rotateRight() *node {
 	n.insertLeftChild(x.rightP)
 	x.insertRightChild(n)
 
-	if nDescent == -1 {
-		x.parentP = nil
-	} else if nDescent == 0 {
+	if nDescent == 0 {
 		parentP.insertLeftChild(x)
-	} else {
+	} else if nDescent == 1 {
 		parentP.insertRightChild(x)
+	} else {
+		x.parentP = nil
 	}
 
 	x.color = n.color
@@ -157,11 +150,13 @@ func (n *node) rotateRight() *node {
 }
 
 // newNode returns a node initialized
-// without a hash or transaction.
-func newNode() *node {
+// without a hash or transaction,
+// of the provided color.
+func newNode(color color) *node {
 	return &node{
 		key:       uuid.New(),
 		createdOn: util.Now(),
+		color:     color,
 	}
 }
 
@@ -175,7 +170,7 @@ type Tree struct {
 
 // Insert inserts the provided transaction as a leaf node into the tree.
 func (t *Tree) Insert(txn txn.Transaction) {
-	n := newNode()
+	n := newNode(RED)
 	n.txn = &txn
 	n.hash = txn.GetHash()
 	t.insert(n)
@@ -191,7 +186,7 @@ func (t *Tree) insert(n *node) {
 	// Otherwise, traverse the tree from the root
 	// to a null link and insert the provided node.
 	if t.Root == nil {
-		r := newNode()
+		r := newNode(BLACK)
 		r.insertChild(n)
 		t.Root = r
 	} else {
@@ -214,15 +209,15 @@ func (t *Tree) insert(n *node) {
 		if p.hasTxn() {
 			// newParent is the new parent node of the provided node
 			// and p; it must be inserted into the same position as p.
-			newParent := newNode()
+			newParent := newNode(RED)
 			pParent := p.parentP
 			pDescent := p.descent()
-			if pDescent == -1 {
-				log.Fatal("leaf node must have a parent node")
-			} else if pDescent == 0 {
+			if pDescent == 0 {
 				pParent.insertLeftChild(newParent)
-			} else {
+			} else if pDescent == 1 {
 				pParent.insertRightChild(newParent)
+			} else {
+				log.Fatal("leaf node must have a parent node")
 			}
 			if p.key.String() <= newParent.key.String() {
 				newParent.insertLeftChild(p)
@@ -231,12 +226,15 @@ func (t *Tree) insert(n *node) {
 				newParent.insertLeftChild(n)
 				newParent.insertRightChild(p)
 			}
+			p.color = RED
 		} else {
 			// TODO: This favors left links; introduce randomness.
 			if p.leftP == nil {
 				p.insertLeftChild(n)
-			} else {
+			} else if p.rightP == nil {
 				p.insertRightChild(n)
+			} else {
+				log.Fatal("insertion point must have a nil link")
 			}
 		}
 	}
