@@ -149,15 +149,19 @@ func (n *node) rotateRight() *node {
 	return x
 }
 
-// newNode returns a node initialized
-// without a hash or transaction,
-// of the provided color.
-func newNode(color color) *node {
-	return &node{
+// newNode returns a node of the provided color
+// and optionally provided transaction.
+func newNode(color color, txn txn.Transaction) *node {
+	n := &node{
 		key:       uuid.New(),
 		createdOn: util.Now(),
 		color:     color,
 	}
+	if txn != nil {
+		n.txn = &txn
+		n.hash = txn.GetHash()
+	}
+	return n
 }
 
 // Tree is a balanced hash tree of transactions.
@@ -170,9 +174,7 @@ type Tree struct {
 
 // Insert inserts the provided transaction as a leaf node into the tree.
 func (t *Tree) Insert(txn txn.Transaction) {
-	n := newNode(RED)
-	n.txn = &txn
-	n.hash = txn.GetHash()
+	n := newNode(RED, txn)
 	t.insert(n)
 	t.balance(n)
 	t.rehash(n)
@@ -186,7 +188,7 @@ func (t *Tree) insert(n *node) {
 	// Otherwise, traverse the tree from the root
 	// to a null link and insert the provided node.
 	if t.Root == nil {
-		r := newNode(BLACK)
+		r := newNode(BLACK, nil)
 		r.insertChild(n)
 		t.Root = r
 	} else {
@@ -209,7 +211,7 @@ func (t *Tree) insert(n *node) {
 		if p.hasTxn() {
 			// newParent is the new parent node of the provided node
 			// and p; it must be inserted into the same position as p.
-			newParent := newNode(RED)
+			newParent := newNode(RED, nil)
 			pParent := p.parentP
 			pDescent := p.descent()
 			if pDescent == 0 {

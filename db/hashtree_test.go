@@ -8,14 +8,19 @@ import (
 	"tradesim/txn"
 )
 
-type testTreeTxn struct{}
-
-func (_ *testTreeTxn) GetHash() string {
-	data := uuid.New().String()
-	return fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
+type testTreeTxn struct {
+	hash string
 }
 
-func (_ *testTreeTxn) GetTxnType() txn.TxnType {
+func (t *testTreeTxn) GetHash() string {
+	if t.hash == "" {
+		data := uuid.New().String()
+		t.hash = fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
+	}
+	return t.hash
+}
+
+func (t *testTreeTxn) GetTxnType() txn.TxnType {
 	return txn.TestTxnType
 }
 
@@ -30,6 +35,25 @@ func TestInsertIncrementsSize(t *testing.T) {
 		expected := uint64(i + 1)
 		if actual := tree.Size; expected != actual {
 			t.Errorf("tree size: expected: %d actual: %d", expected, actual)
+		}
+	}
+}
+
+// TestInsertMaintainsRoot asserts that after every
+// insertion into a tree the root node has no parent.
+func TestInsertMaintainsRoot(t *testing.T) {
+	tree := NewTree()
+
+	for i := 0; i < 100; i++ {
+		tree.Insert(&testTreeTxn{})
+
+		if ok := traverse(tree.Root, func(n *node) bool {
+			if tree.Root.parentP != nil {
+				return false
+			}
+			return true
+		}); !ok {
+			t.FailNow()
 		}
 	}
 }
