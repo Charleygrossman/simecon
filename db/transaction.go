@@ -1,4 +1,4 @@
-package txn
+package db
 
 // TxnType represents a type of transaction.
 type TxnType string

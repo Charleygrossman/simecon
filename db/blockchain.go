@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
-	"tradesim/txn"
 	"tradesim/util"
 )
 
@@ -54,7 +53,7 @@ func (b *block) string() string {
 
 // NewBlock returns a block initialized with
 // a transaction tree with the provided transaction.
-func NewBlock(txn txn.Transaction) *block {
+func NewBlock(txn Transaction) *block {
 	t := NewTree()
 	t.Insert(txn)
 	return &block{

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"testing"
-	"tradesim/txn"
 )
 
 type testBlockchainTxn struct{}
@@ -15,8 +14,8 @@ func (_ *testBlockchainTxn) GetHash() string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
 }
 
-func (_ *testBlockchainTxn) GetTxnType() txn.TxnType {
-	return txn.TestTxnType
+func (_ *testBlockchainTxn) GetTxnType() TxnType {
+	return TestTxnType
 }
 
 // TestLen asserts that a new blockchain with one new block appended has length 2.

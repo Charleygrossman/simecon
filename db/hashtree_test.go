@@ -5,18 +5,17 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"testing"
-	"tradesim/txn"
 )
 
 type testTreeTxn struct{}
 
-func (_ *testTreeTxn) GetHash() string {
+func (testTreeTxn) GetHash() string {
 	data := uuid.New().String()
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
 }
 
-func (_ *testTreeTxn) GetTxnType() txn.TxnType {
-	return txn.TestTxnType
+func (testTreeTxn) GetTxnType() TxnType {
+	return TestTxnType
 }
 
 // TestInsertIncrementsSize asserts that every insertion into a tree
