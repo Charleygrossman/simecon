@@ -12,18 +12,18 @@ type Trader struct {
 }
 
 func (t Trader) Trade(g *Graph) error {
-	adjacent, err := g.Adjacent(t.ID, t.GraphID)
+	adjacent, err := g.Adjacent(t.GraphID, t.ID)
 	if err != nil {
 		return err
 	}
-	for _, a := range adjacent {
+	for _, adjTraderID := range adjacent {
 		msg := TradeMessage{
 			FromTraderID: t.ID,
-			ToTraderID:   a,
+			ToTraderID:   adjTraderID,
 			Tradable:     t.Inventory,
 			Wants:        t.Wants,
 		}
-		if err := g.SendTradeMessage(t.ID, t.GraphID, msg); err != nil {
+		if err := g.SendTradeMessage(t.GraphID, msg); err != nil {
 			return err
 		}
 	}
