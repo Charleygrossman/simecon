@@ -1,6 +1,7 @@
 package market
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 )
 
@@ -11,23 +12,23 @@ type Trader struct {
 	Wants     []Item
 }
 
-func (t Trader) Trade(g *Graph) error {
+func (t Trader) SendTradeMessage(g *Graph, toTraderID uuid.UUID) error {
 	adjacent, err := g.Adjacent(t.GraphID, t.ID)
 	if err != nil {
 		return err
 	}
 	for _, adjTraderID := range adjacent {
-		msg := TradeMessage{
-			FromTraderID: t.ID,
-			ToTraderID:   adjTraderID,
-			Tradable:     t.Inventory,
-			Wants:        t.Wants,
-		}
-		if err := g.SendTradeMessage(t.GraphID, msg); err != nil {
-			return err
+		if adjTraderID == toTraderID {
+			msg := TradeMessage{
+				FromTraderID: t.ID,
+				ToTraderID:   toTraderID,
+				Tradable:     t.Inventory,
+				Wants:        t.Wants,
+			}
+			return g.SendTradeMessage(t.GraphID, msg)
 		}
 	}
-	return nil
+	return fmt.Errorf("trader not found: %s", toTraderID.String())
 }
 
 type TradeMessage struct {
