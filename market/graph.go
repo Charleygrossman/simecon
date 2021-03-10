@@ -4,33 +4,74 @@ import (
 	"container/list"
 	"errors"
 	"github.com/google/uuid"
-	"math"
-	"time"
 )
+
+type Node struct {
+	GraphID        uuid.UUID
+	Trader         *Trader
+	TradeRequests  *list.List
+	TradeResponses *list.List
+	Clock          Clock
+}
+
+type Edge struct {
+	UTraderID uuid.UUID
+	VTraderID uuid.UUID
+	Delta     float64
+}
 
 type Graph struct {
 	// node maps the trader ID of a node within the graph to the node itself.
 	node map[uuid.UUID]*Node
+	// edge maps the trader IDs of two nodes within the graph to their edge.
+	// Every edge corresponds to an adjacency.
+	edge map[struct{ uTraderID, vTraderID uuid.UUID }]*Edge
 	// adjacent maps the trader ID of a node within the graph to the trader IDs
-	// of its adjacent nodes within the graph.
+	// of its adjacent nodes within the graph. Every adjacency corresponds to an edge.
 	adjacent map[uuid.UUID][]uuid.UUID
 }
 
-func NewGraph(nodes []Node, adjacencies map[uuid.UUID][]uuid.UUID) *Graph {
-	g := &Graph{
-		adjacent: adjacencies,
-	}
-	m := make(map[uuid.UUID]*Node, len(nodes))
+func NewGraph(nodes []Node, edges []Edge) *Graph {
+	node := make(map[uuid.UUID]*Node)
 	for _, n := range nodes {
-		m[n.Trader.ID] = &Node{
+		if n.Trader == nil {
+			continue
+		}
+		node[n.Trader.ID] = &Node{
 			Trader:         n.Trader,
 			GraphID:        n.GraphID,
 			TradeRequests:  list.New(),
 			TradeResponses: list.New(),
 		}
 	}
-	g.node = m
-	return g
+
+	edge := make(map[struct{ uTraderID, vTraderID uuid.UUID }]*Edge)
+	adjacent := make(map[uuid.UUID][]uuid.UUID)
+	for _, e := range edges {
+		if _, ok := node[e.UTraderID]; !ok {
+			continue
+		}
+		if _, ok := node[e.VTraderID]; !ok {
+			continue
+		}
+
+		edge[struct {
+			uTraderID, vTraderID uuid.UUID
+		}{e.UTraderID, e.VTraderID}] = &Edge{
+			UTraderID: e.UTraderID,
+			VTraderID: e.VTraderID,
+			Delta:     e.Delta,
+		}
+
+		adjacent[e.UTraderID] = append(adjacent[e.UTraderID], e.VTraderID)
+		adjacent[e.VTraderID] = append(adjacent[e.VTraderID], e.UTraderID)
+	}
+
+	return &Graph{
+		node:     node,
+		edge:     edge,
+		adjacent: adjacent,
+	}
 }
 
 func (g Graph) Adjacent(graphID, traderID uuid.UUID) ([]uuid.UUID, error) {
@@ -121,70 +162,4 @@ func (g Graph) authorizeTradeMessage(graphID uuid.UUID, message TradeMessage) er
 		}
 	}
 	return errors.New("unauthorized trade message")
-}
-
-// Clock represents a monotonic clock with a frequency and duration.
-type Clock struct {
-	// Ticker is the underlying time.Ticker of Clock.
-	Ticker *time.Ticker
-	// Frequency represents the time interval between ticks.
-	Frequency time.Duration
-	// Limit represents the maximum value Tick can reach;
-	// there is no such value if Limit is nil.
-	Limit *uint64
-	// Tick is a count of the number of ticks Clock has seen.
-	Tick uint64
-	// Done receives true when the clock has reached its limit,
-	// or is stopped or reset.
-	Done chan bool
-}
-
-func NewClock(frequency time.Duration, limit *uint64) *Clock {
-	return &Clock{
-		Ticker:    nil,
-		Frequency: frequency,
-		Limit:     limit,
-		Tick:      0,
-		Done:      make(chan bool),
-	}
-}
-
-func (c *Clock) Start() {
-	// Creating a new ticker will start it.
-	c.Ticker = time.NewTicker(c.Frequency)
-	go func() {
-		// Run the clock until Limit is reached or Tick
-		// reaches system limits (maximum integer value).
-		for (c.Limit == nil || c.Tick < *c.Limit) && c.Tick < math.MaxUint64 {
-			time.Sleep(c.Frequency)
-			c.Tick++
-		}
-		c.Done <- true
-	}()
-}
-
-func (c *Clock) Stop() {
-	c.Ticker.Stop()
-}
-
-func (c *Clock) Reset() {
-	c.Ticker.Stop()
-	c.Ticker = nil
-	c.Tick = 0
-	c.Done = make(chan bool)
-}
-
-type Node struct {
-	Clock          Clock
-	GraphID        uuid.UUID
-	Trader         *Trader
-	TradeRequests  *list.List
-	TradeResponses *list.List
-}
-
-type Edge struct {
-	UTraderID uuid.UUID
-	VTraderID uuid.UUID
-	Delta     float64
-	Closeness float64
 }
