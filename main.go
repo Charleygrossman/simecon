@@ -17,5 +17,4 @@ func main() {
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
-
 }

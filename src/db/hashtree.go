@@ -3,9 +3,10 @@ package db
 import (
 	"crypto/sha256"
 	"fmt"
-	"github.com/google/uuid"
 	"log"
-	"tradesim/util"
+	"tradesim/src/util"
+
+	"github.com/google/uuid"
 )
 
 // color represents red and black links in a red-black binary search tree.

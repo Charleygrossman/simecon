@@ -1,12 +1,30 @@
 package market
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+)
+
+type TradeMessage struct {
+	FromTraderID uuid.UUID
+	ToTraderID   uuid.UUID
+	Available    InstrumentSet
+	Wants        InstrumentSet
+}
 
 type Trader struct {
 	ID        uuid.UUID
 	GraphID   uuid.UUID
-	Inventory []Item
-	Wants     []Item
+	Inventory InstrumentSet
+	Wants     InstrumentSet
+}
+
+func NewTrader(inventory, wants InstrumentSet) *Trader {
+	return &Trader{
+		ID:        uuid.New(),
+		GraphID:   uuid.Nil,
+		Inventory: inventory,
+		Wants:     wants,
+	}
 }
 
 func (t Trader) SendTradeRequests(g *Graph) error {
@@ -18,7 +36,7 @@ func (t Trader) SendTradeRequests(g *Graph) error {
 		msg := TradeMessage{
 			FromTraderID: t.ID,
 			ToTraderID:   adjTraderID,
-			Tradable:     t.Inventory,
+			Available:    t.Inventory,
 			Wants:        t.Wants,
 		}
 		if err := g.SendTradeRequest(t.GraphID, msg); err != nil {
@@ -38,7 +56,7 @@ func (t Trader) SendTradeResponses(g *Graph) error {
 			msg := TradeMessage{
 				FromTraderID: t.ID,
 				ToTraderID:   r.FromTraderID,
-				Tradable:     t.Inventory,
+				Available:    t.Inventory,
 				Wants:        t.Wants,
 			}
 			if err := g.SendTradeResponse(t.GraphID, msg); err != nil {
@@ -53,24 +71,12 @@ func (t Trader) acceptRequest(request TradeMessage) bool {
 	return t.hasRequestWant(request) && t.wantsRequestTradable(request)
 }
 
+// TODO
 func (t Trader) hasRequestWant(request TradeMessage) bool {
-	for _, item := range t.Inventory {
-		for _, v := range request.Wants {
-			if item == v {
-				return true
-			}
-		}
-	}
 	return false
 }
 
+// TODO
 func (t Trader) wantsRequestTradable(request TradeMessage) bool {
-	for _, item := range t.Wants {
-		for _, v := range request.Tradable {
-			if item == v {
-				return true
-			}
-		}
-	}
 	return false
 }

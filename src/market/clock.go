@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Clock represents a monotonic clock with a frequency and duration.
+// Clock represents a monotonic clock with a tick frequency and limit.
 type Clock struct {
 	// Ticker is the underlying monotonic clock.
 	Ticker *time.Ticker
@@ -13,7 +13,6 @@ type Clock struct {
 	Frequency time.Duration
 	// Limit represents the maximum value Tick can reach,
 	// which is math.MaxUint64 if Limit is nil.
-	// Limit also represents the duration of the clock.
 	Limit *uint64
 	// Tick is a count of the number of ticks the clock has seen
 	// in its current run.
@@ -24,13 +23,13 @@ type Clock struct {
 }
 
 // NewClock returns a clock initialized with the provided
-// frequency and duration. The clock doesn't start running
+// frequency and limit. The clock doesn't start running
 // until it is explicitly started.
-func NewClock(frequency time.Duration, duration *uint64) *Clock {
+func NewClock(frequency time.Duration, limit *uint64) *Clock {
 	return &Clock{
 		Ticker:    nil,
 		Frequency: frequency,
-		Limit:     duration,
+		Limit:     limit,
 		Tick:      0,
 		Done:      make(chan bool),
 	}

@@ -3,18 +3,19 @@ package db
 import (
 	"crypto/sha256"
 	"fmt"
-	"github.com/google/uuid"
 	"testing"
+
+	"github.com/google/uuid"
 )
 
 type testBlockchainTxn struct{}
 
-func (_ *testBlockchainTxn) GetHash() string {
+func (*testBlockchainTxn) GetHash() string {
 	data := uuid.New().String()
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
 }
 
-func (_ *testBlockchainTxn) GetTxnType() TxnType {
+func (*testBlockchainTxn) GetTxnType() TxnType {
 	return TestTxnType
 }
 

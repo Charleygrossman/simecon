@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"errors"
 	"github.com/google/uuid"
+	"time"
 )
 
 type Node struct {
@@ -11,7 +12,7 @@ type Node struct {
 	Trader         *Trader
 	TradeRequests  *list.List
 	TradeResponses *list.List
-	Clock          Clock
+	Clock          *Clock
 }
 
 type Edge struct {
@@ -162,4 +163,96 @@ func (g Graph) authorizeTradeMessage(graphID uuid.UUID, message TradeMessage) er
 		}
 	}
 	return errors.New("unauthorized trade message")
+}
+
+func (g *Graph) addNode(node *Node) error {
+	if node == nil {
+		return errors.New("nil node")
+	}
+	if node.Trader == nil {
+		return errors.New("nil trader")
+	}
+	if _, ok := g.node[node.Trader.ID]; ok {
+		return errors.New("node already exists in graph")
+	}
+
+	graphID := uuid.New()
+
+	g.node[node.Trader.ID] = &Node{
+		GraphID:        graphID,
+		Trader:         node.Trader,
+		TradeRequests:  list.New(),
+		TradeResponses: list.New(),
+		Clock:          NewClock(time.Second, nil),
+	}
+
+	node.Trader.GraphID = graphID
+
+	return nil
+}
+
+// TODO: Update edges and adjacencies.
+func (g *Graph) removeNode(node *Node) error {
+	if node == nil {
+		return errors.New("nil node")
+	}
+	if node.Trader == nil {
+		return errors.New("nil trader")
+	}
+	if _, ok := g.node[node.Trader.ID]; !ok {
+		return errors.New("node doesn't exist in graph")
+	}
+
+	g.node[node.Trader.ID] = nil
+
+	node.Trader.GraphID = uuid.Nil
+
+	return nil
+}
+
+func (g *Graph) addEdge(edge Edge) error {
+	if _, ok := g.node[edge.UTraderID]; !ok {
+		return errors.New("trader U doesn't exist in graph")
+	}
+	if _, ok := g.node[edge.VTraderID]; !ok {
+		return errors.New("trader V doesn't exist in graph")
+	}
+
+	key := struct {
+		uTraderID, vTraderID uuid.UUID
+	}{edge.UTraderID, edge.VTraderID}
+
+	if _, ok := g.edge[key]; ok {
+		return errors.New("edge already exists in graph")
+	}
+
+	g.edge[key] = &Edge{
+		UTraderID: edge.UTraderID,
+		VTraderID: edge.VTraderID,
+		Delta:     edge.Delta,
+	}
+
+	return nil
+}
+
+// TODO: Update adjacencies.
+func (g *Graph) removeEdge(edge Edge) error {
+	if _, ok := g.node[edge.UTraderID]; !ok {
+		return errors.New("trader U doesn't exist in graph")
+	}
+	if _, ok := g.node[edge.VTraderID]; !ok {
+		return errors.New("trader V doesn't exist in graph")
+	}
+
+	key := struct {
+		uTraderID, vTraderID uuid.UUID
+	}{edge.UTraderID, edge.VTraderID}
+
+	if _, ok := g.edge[key]; !ok {
+		return errors.New("edge doesn't exist in graph")
+	}
+
+	g.edge[key] = nil
+
+	return nil
 }
