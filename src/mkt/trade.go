@@ -1,13 +1,14 @@
-package market
+package mkt
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 )
 
 // Currency represents an ISO 4217 alpha currency code.
-type Currency string
+type Currency = string
 
 const (
 	// Unknown represents an unknown currency.
@@ -28,16 +29,26 @@ const (
 	USD Currency = "USD"
 )
 
-type CurrencyError struct {
-	Ccy Currency
+var Currencies = []Currency{
+	AUD,
+	CAD,
+	CNY,
+	EUR,
+	GBP,
+	JPY,
+	USD,
 }
 
-func NewCurrencyError(ccy Currency) *CurrencyError {
+type CurrencyError struct {
+	Ccy string
+}
+
+func NewCurrencyError(ccy string) *CurrencyError {
 	return &CurrencyError{Ccy: ccy}
 }
 
 func (e CurrencyError) Error() string {
-	return fmt.Sprintf("unsupported currency: %s", e.Ccy)
+	return fmt.Sprintf("unsupported currency: supported=%s got=%s", strings.Join(Currencies, ", "), e.Ccy)
 }
 
 // Instrument represents a tradable thing.
@@ -77,7 +88,7 @@ func (s InstrumentSet) GoodsByName() map[string]Good {
 type BaseInstrument struct {
 	ID        uuid.UUID
 	Name      string
-	Prices    map[Currency]float64 // Use sync.Map for concurrent read/write.
+	Prices    map[Currency]float64
 	Quantity  float64
 	ValueFunc func(ccy Currency) (float64, error)
 }

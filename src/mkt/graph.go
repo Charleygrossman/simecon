@@ -1,10 +1,11 @@
-package market
+package mkt
 
 import (
 	"container/list"
 	"errors"
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Node struct {
@@ -15,6 +16,16 @@ type Node struct {
 	Clock          *Clock
 }
 
+func NewNode(trader *Trader, clock *Clock) *Node {
+	return &Node{
+		GraphID:        uuid.New(),
+		Trader:         trader,
+		TradeRequests:  list.New(),
+		TradeResponses: list.New(),
+		Clock:          clock,
+	}
+}
+
 type Edge struct {
 	UTraderID uuid.UUID
 	VTraderID uuid.UUID
@@ -22,6 +33,8 @@ type Edge struct {
 }
 
 type Graph struct {
+	// clock drives the timing and events of the graph.
+	clock *Clock
 	// node maps the trader ID of a node within the graph to the node itself.
 	node map[uuid.UUID]*Node
 	// edge maps the trader IDs of two nodes within the graph to their edge.
@@ -32,7 +45,7 @@ type Graph struct {
 	adjacent map[uuid.UUID][]uuid.UUID
 }
 
-func NewGraph(nodes []Node, edges []Edge) *Graph {
+func NewGraph(clock *Clock, nodes []Node, edges []Edge) *Graph {
 	node := make(map[uuid.UUID]*Node)
 	for _, n := range nodes {
 		if n.Trader == nil {
@@ -69,6 +82,7 @@ func NewGraph(nodes []Node, edges []Edge) *Graph {
 	}
 
 	return &Graph{
+		clock:    clock,
 		node:     node,
 		edge:     edge,
 		adjacent: adjacent,
@@ -183,7 +197,7 @@ func (g *Graph) addNode(node *Node) error {
 		Trader:         node.Trader,
 		TradeRequests:  list.New(),
 		TradeResponses: list.New(),
-		Clock:          NewClock(time.Second, nil),
+		Clock:          NewClock(time.Second, 0),
 	}
 
 	node.Trader.GraphID = graphID

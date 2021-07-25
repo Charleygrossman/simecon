@@ -1,18 +1,19 @@
 package util
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
 	"time"
 )
 
-// MappedJson returns a map of all fields in the provided JSON-encoded data.
-func MappedJson(data []byte) (map[string]interface{}, error) {
-	m := make(map[string]interface{})
-	err := json.Unmarshal(data, &m)
-	return m, err
+func ContainsString(s []string, v string) bool {
+	for _, e := range s {
+		if e == v {
+			return true
+		}
+	}
+	return false
 }
 
 // TODO: datetime type.

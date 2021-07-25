@@ -1,4 +1,4 @@
-package market
+package mkt
 
 import (
 	"github.com/google/uuid"

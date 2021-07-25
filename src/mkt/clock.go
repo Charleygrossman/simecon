@@ -1,4 +1,4 @@
-package market
+package mkt
 
 import (
 	"math"
@@ -25,11 +25,12 @@ type Clock struct {
 // NewClock returns a clock initialized with the provided
 // frequency and limit. The clock doesn't start running
 // until it is explicitly started.
-func NewClock(frequency time.Duration, limit *uint64) *Clock {
+func NewClock(frequency time.Duration, limit uint64) *Clock {
+	l := limit
 	return &Clock{
 		Ticker:    nil,
 		Frequency: frequency,
-		Limit:     limit,
+		Limit:     &l,
 		Tick:      0,
 		Done:      make(chan bool),
 	}
