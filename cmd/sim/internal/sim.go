@@ -1,8 +1,10 @@
 package internal
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"tradesim/src/mkt"
 	"tradesim/src/sim"
 )
 
@@ -15,14 +17,28 @@ func Simulate(inFilepath, outFilepath string) error {
 	return nil
 }
 
-// TODO: initialize and run market graph
 func simulate(in, out string) error {
 	config, err := sim.NewSimConfig(in)
 	if err != nil {
 		return err
 	}
 
-	sim.ParseClock(config.Clock)
-	sim.ParseTraders(config.Traders)
-	return nil
+	clock := sim.ParseClock(config.Clock)
+	traders := sim.ParseTraders(config.Traders)
+	if len(traders) == 0 {
+		return nil
+	}
+
+	// TODO: configurable
+	edges := make([]mkt.Edge, 0, len(traders)-1)
+	for i := 0; i < len(traders)-1; i++ {
+		edges = append(edges, mkt.Edge{
+			UTraderID: traders[i].ID,
+			VTraderID: traders[i+1].ID,
+			Delta:     1,
+		})
+	}
+
+	graph := mkt.NewGraph(traders, edges, clock)
+	return graph.Run(context.Background())
 }

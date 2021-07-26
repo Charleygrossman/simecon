@@ -1,15 +1,16 @@
 package sim
 
 import (
-	"time"
+	libTime "time"
 	"tradesim/src/mkt"
+	"tradesim/src/time"
 
 	"github.com/google/uuid"
 )
 
-func ParseClock(config ClockConfig) *mkt.Clock {
-	return mkt.NewClock(
-		time.Second*time.Duration(config.Frequency),
+func ParseClock(config ClockConfig) time.Clock {
+	return time.NewClock(
+		libTime.Second*libTime.Duration(config.Frequency),
 		config.Limit,
 	)
 }

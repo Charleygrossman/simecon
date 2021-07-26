@@ -13,7 +13,6 @@ type TradeMessage struct {
 
 type Trader struct {
 	ID        uuid.UUID
-	GraphID   uuid.UUID
 	Inventory InstrumentSet
 	Wants     InstrumentSet
 }
@@ -21,14 +20,13 @@ type Trader struct {
 func NewTrader(inventory, wants InstrumentSet) *Trader {
 	return &Trader{
 		ID:        uuid.New(),
-		GraphID:   uuid.Nil,
 		Inventory: inventory,
 		Wants:     wants,
 	}
 }
 
 func (t Trader) SendTradeRequests(g *Graph) error {
-	adjacent, err := g.Adjacent(t.GraphID, t.ID)
+	adjacent, err := g.Adjacent(t.ID)
 	if err != nil {
 		return err
 	}
@@ -39,7 +37,7 @@ func (t Trader) SendTradeRequests(g *Graph) error {
 			Available:    t.Inventory,
 			Wants:        t.Wants,
 		}
-		if err := g.SendTradeRequest(t.GraphID, msg); err != nil {
+		if err := g.SendTradeRequest(msg); err != nil {
 			return err
 		}
 	}
@@ -47,7 +45,7 @@ func (t Trader) SendTradeRequests(g *Graph) error {
 }
 
 func (t Trader) SendTradeResponses(g *Graph) error {
-	requests, err := g.TradeRequests(t.GraphID, t.ID)
+	requests, err := g.TradeRequests(t.ID)
 	if err != nil {
 		return err
 	}
@@ -59,7 +57,7 @@ func (t Trader) SendTradeResponses(g *Graph) error {
 				Available:    t.Inventory,
 				Wants:        t.Wants,
 			}
-			if err := g.SendTradeResponse(t.GraphID, msg); err != nil {
+			if err := g.SendTradeResponse(msg); err != nil {
 				return err
 			}
 		}
