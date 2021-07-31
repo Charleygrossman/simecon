@@ -72,6 +72,9 @@ func parseSimConfig(filepath string) (SimConfig, error) {
 }
 
 func validateSimConfig(config SimConfig) error {
+	if config.Clock.Frequency == 0 {
+		return fmt.Errorf("clock frequency must be positive: min=1 got=%d", config.Clock.Frequency)
+	}
 	for _, t := range config.Traders {
 		for _, c := range t.Inventory.Cash {
 			if !util.ContainsString(mkt.Currencies, c.Currency) {

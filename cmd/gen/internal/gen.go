@@ -13,6 +13,9 @@ import (
 var (
 	ErrGen   = errors.New("failed to generate simulation configuration file")
 	template = sim.SimConfig{
+		Clock: sim.ClockConfig{
+			Frequency: 1,
+		},
 		Traders: []sim.TraderConfig{
 			{
 				Inventory: sim.InstrumentSetConfig{
