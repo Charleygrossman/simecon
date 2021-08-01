@@ -13,8 +13,11 @@ import (
 var (
 	ErrGen   = errors.New("failed to generate simulation configuration file")
 	template = sim.SimConfig{
-		Clock: sim.ClockConfig{
-			Frequency: 1,
+		Process: sim.ProcessConfig{
+			Clock: sim.ClockConfig{
+				Frequency: 1,
+			},
+			Distrib: sim.DistribConfig{},
 		},
 		Traders: []sim.TraderConfig{
 			{

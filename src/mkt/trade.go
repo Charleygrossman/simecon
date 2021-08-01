@@ -11,8 +11,6 @@ import (
 type Currency = string
 
 const (
-	// Unknown represents an unknown currency.
-	Unknown Currency = ""
 	// AUD represents the Australian Dollar.
 	AUD Currency = "AUD"
 	// CAD represents the Canadian Dollar.

@@ -23,7 +23,7 @@ func simulate(in, out string) error {
 		return err
 	}
 
-	clock := sim.ParseClock(config.Clock)
+	process := sim.ParseProcess(config.Process)
 	traders := sim.ParseTraders(config.Traders)
 	if len(traders) == 0 {
 		return nil
@@ -39,6 +39,6 @@ func simulate(in, out string) error {
 		})
 	}
 
-	graph := mkt.NewGraph(traders, edges, clock)
+	graph := mkt.NewGraph(traders, edges, process)
 	return graph.Run(context.Background())
 }

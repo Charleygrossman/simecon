@@ -1,18 +1,40 @@
 package sim
 
 import (
+	"strings"
 	libTime "time"
 	"tradesim/src/mkt"
+	"tradesim/src/prob"
 	"tradesim/src/time"
 
 	"github.com/google/uuid"
 )
 
-func ParseClock(config ClockConfig) time.Clock {
+func ParseProcess(config ProcessConfig) prob.Process {
+	return prob.NewProcess(
+		parseDistribution(config.Distrib),
+		parseClock(config.Clock),
+	)
+}
+
+func parseClock(config ClockConfig) time.Clock {
 	return time.NewClock(
 		libTime.Second*libTime.Duration(config.Frequency),
 		config.Limit,
 	)
+}
+
+func parseDistribution(config DistribConfig) prob.Distribution {
+	switch strings.ToLower(strings.TrimSpace(config.Type)) {
+	case prob.DistribExp:
+		return prob.NewExponential(config.Prob, config.Lambda)
+	case prob.DistribNorm:
+		return prob.NewNormal(config.Prob, config.Mean, config.StdDev)
+	case prob.DistribUni:
+		return prob.NewUniform(config.Prob)
+	default:
+		return nil
+	}
 }
 
 func ParseTraders(config []TraderConfig) []*mkt.Trader {

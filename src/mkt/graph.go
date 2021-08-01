@@ -5,7 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"tradesim/src/time"
+	"tradesim/src/prob"
 
 	"github.com/google/uuid"
 )
@@ -50,11 +50,11 @@ type Graph struct {
 	// adjacentByID maps the trader ID of a node within the graph to the trader IDs
 	// of its adjacent nodes within the graph. Every adjacency corresponds to an edge.
 	adjacentByID map[uuid.UUID][]uuid.UUID
-	// clock drives the global timing and events of the graph.
-	clock time.Clock
+	// process drives the global timing and events of the graph.
+	process prob.Process
 }
 
-func NewGraph(traders []*Trader, edges []Edge, clock time.Clock) *Graph {
+func NewGraph(traders []*Trader, edges []Edge, process prob.Process) *Graph {
 	if len(traders) == 0 {
 		return nil
 	}
@@ -85,20 +85,18 @@ func NewGraph(traders []*Trader, edges []Edge, clock time.Clock) *Graph {
 		nodeByID:     nodeByID,
 		edgeByID:     edgeByID,
 		adjacentByID: adjacentByID,
-		clock:        clock,
+		process:      process,
 	}
 }
 
 func (g Graph) Run(ctx context.Context) error {
-	go g.clock.Start()
+	go g.process.Start(ctx)
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
-		case <-g.clock.Done:
-			return nil
 		// TODO
-		case <-g.clock.Tick:
+		case <-g.process.Event:
 		}
 	}
 }
