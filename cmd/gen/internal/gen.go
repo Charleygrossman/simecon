@@ -5,36 +5,31 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"tradesim/src/sim"
+	"tradesim/src/sim/config"
+	"tradesim/src/trade"
 
 	"gopkg.in/yaml.v3"
 )
 
 var (
-	ErrGen   = errors.New("failed to generate simulation configuration file")
-	template = sim.SimConfig{
-		Process: sim.ProcessConfig{
-			Clock: sim.ClockConfig{
+	ErrGen = errors.New("failed to generate simulation configuration file")
+
+	template = config.SimConfig{
+		Process: config.ProcessConfig{
+			Clock: config.ClockConfig{
 				Frequency: 1,
 			},
-			Distrib: sim.DistribConfig{},
+			Distrib: config.DistribConfig{},
 		},
-		Traders: []sim.TraderConfig{
+		Traders: []config.TraderConfig{
 			{
-				Inventory: sim.InstrumentSetConfig{
-					Cash:  []sim.CashConfig{{}},
-					Goods: []sim.GoodConfig{{}},
-				},
-				Wants: sim.InstrumentSetConfig{
-					Cash:  []sim.CashConfig{{}},
-					Goods: []sim.GoodConfig{{}},
-				},
+				Haves: []trade.Have{},
+				Wants: []trade.Want{},
 			},
 		},
 	}
 )
 
-// TODO: generate with comments
 func Generate(filepath string) error {
 	if err := generate(filepath); err != nil {
 		return fmt.Errorf("%w: %v", ErrGen, err)

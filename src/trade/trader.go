@@ -9,10 +9,15 @@ import (
 )
 
 type Trader struct {
-	ID      uuid.UUID
-	Haves   map[uuid.UUID]*Have
-	Wants   map[uuid.UUID]*Want
-	process *prob.Process
+	ID           uuid.UUID
+	Haves        map[uuid.UUID]*Have
+	Wants        map[uuid.UUID]*Want
+	RequestSend  chan Request
+	RequestRecv  chan Request
+	ResponseSend chan Response
+	ResponseRecv chan Responses
+	Choice       chan uuid.UUID
+	process      *prob.Process
 }
 
 func NewTrader(have []Have, want []Want) *Trader {
@@ -55,9 +60,4 @@ type Want struct {
 	PriceMin float64
 	PriceMax float64
 	Quantity float64
-}
-
-type Item struct {
-	ID   uuid.UUID
-	Name string
 }

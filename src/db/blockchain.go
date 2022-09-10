@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
-	"tradesim/src/util"
+	"time"
 )
 
 // maxint64 is a pointer to the largest int64 value.
@@ -46,18 +46,13 @@ func (b *block) setPrev() bool {
 	}
 }
 
-// string returns a string representation of the block.
-func (b *block) string() string {
-	return util.StringStruct(b)
-}
-
 // NewBlock returns a block initialized with
 // a transaction tree with the provided transaction.
 func NewBlock(txn Transaction) *block {
 	t := NewTree()
 	t.Insert(txn)
 	return &block{
-		createdOn: util.Now(),
+		createdOn: time.Now().UTC().String(),
 		txnTree:   t,
 	}
 }
@@ -105,20 +100,10 @@ func (b *Blockchain) Len() int {
 	return count
 }
 
-// string returns a string representation of the blockchain.
-func (b *Blockchain) string() string {
-	rep := []string{}
-	for curr := b.tail; curr != nil; {
-		rep = append(rep, curr.string())
-		curr = curr.prevP
-	}
-	return fmt.Sprint(strings.Join(util.ReversedStringSlice(rep), "<-"))
-}
-
 // NewBlockchain returns a blockchain initialized with a genesis block.
 func NewBlockchain() *Blockchain {
 	gen := &block{
-		createdOn: util.Now(),
+		createdOn: time.Now().UTC().String(),
 		prev:      strings.Repeat("0", 64),
 		txnTree:   NewTree(),
 	}

@@ -61,7 +61,7 @@ func (e Exponential) Generate() float64 {
 }
 
 func (e Exponential) Indicate() bool {
-	return e.Prob >= NormalizedFloat64(e.Generate(), 0, math.MaxFloat64)
+	return e.Prob >= normalizedFloat64(e.Generate(), 0, math.MaxFloat64)
 }
 
 type Normal struct {
@@ -83,7 +83,7 @@ func (n Normal) Generate() float64 {
 }
 
 func (n Normal) Indicate() bool {
-	return n.Prob >= NormalizedFloat64(n.Generate(), -math.MaxFloat64, math.MaxFloat64)
+	return n.Prob >= normalizedFloat64(n.Generate(), -math.MaxFloat64, math.MaxFloat64)
 }
 
 type Uniform struct {
@@ -100,4 +100,8 @@ func (u Uniform) Generate() float64 {
 
 func (u Uniform) Indicate() bool {
 	return u.Prob >= u.Generate()
+}
+
+func normalizedFloat64(v, min, max float64) float64 {
+	return (v - min) / (max - min)
 }

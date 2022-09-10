@@ -1,12 +1,12 @@
-package sim
+package config
 
 import (
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"strings"
-	"tradesim/src/mkt"
 	"tradesim/src/prob"
+	"tradesim/src/trade"
 	"tradesim/src/util"
 
 	"gopkg.in/yaml.v3"
@@ -48,23 +48,8 @@ type DistribConfig struct {
 }
 
 type TraderConfig struct {
-	Inventory InstrumentSetConfig `yaml:"inventory"`
-	Wants     InstrumentSetConfig `yaml:"wants"`
-}
-
-type InstrumentSetConfig struct {
-	Cash  []CashConfig `yaml:"cash"`
-	Goods []GoodConfig `yaml:"goods"`
-}
-
-type CashConfig struct {
-	Currency string  `yaml:"currency"`
-	Quantity float64 `yaml:"quantity"`
-}
-
-type GoodConfig struct {
-	Name     string  `yaml:"name"`
-	Quantity float64 `yaml:"quantity"`
+	Haves []trade.Have `yaml:"haves"`
+	Wants []trade.Want `yaml:"wants"`
 }
 
 type SimConfig struct {
@@ -97,15 +82,7 @@ func parseSimConfig(filepath string) (SimConfig, error) {
 }
 
 func validateSimConfig(config SimConfig) error {
-	if err := validateProcessConfig(config.Process); err != nil {
-		return err
-	}
-	for _, v := range config.Traders {
-		if err := validateTraderConfig(v); err != nil {
-			return err
-		}
-	}
-	return nil
+	return validateProcessConfig(config.Process)
 }
 
 func validateProcessConfig(config ProcessConfig) error {
@@ -141,15 +118,6 @@ func validateDistribConfig(config DistribConfig) error {
 		if config.StdDev < minDistribStdDev {
 			return fmt.Errorf("%w: name=standard_deviation min=%f got=%f",
 				ErrOutOfRange, minDistribStdDev, config.StdDev)
-		}
-	}
-	return nil
-}
-
-func validateTraderConfig(config TraderConfig) error {
-	for _, c := range config.Inventory.Cash {
-		if !util.ContainsString(mkt.Currencies, strings.ToUpper(strings.TrimSpace(c.Currency))) {
-			return mkt.NewCurrencyError(c.Currency)
 		}
 	}
 	return nil

@@ -4,7 +4,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"log"
-	"tradesim/src/util"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -156,7 +156,7 @@ func (n *node) rotateRight() *node {
 func newNode() *node {
 	return &node{
 		key:       uuid.New(),
-		createdOn: util.Now(),
+		createdOn: time.Now().UTC().String(),
 	}
 }
 
@@ -288,7 +288,7 @@ func NewTree() *Tree {
 	return &Tree{
 		Root: &node{
 			key:       uuid.New(),
-			createdOn: util.Now(),
+			createdOn: time.Now().UTC().String(),
 		},
 	}
 }
