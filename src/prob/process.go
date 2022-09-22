@@ -17,15 +17,15 @@ type Process struct {
 	clock clock.Clock
 }
 
-func NewProcess(distribution Distribution, clock clock.Clock) Process {
-	return Process{
+func NewProcess(distribution Distribution, clock clock.Clock) *Process {
+	return &Process{
 		Event:        make(chan time.Time),
 		distribution: distribution,
 		clock:        clock,
 	}
 }
 
-func (p Process) Start(ctx context.Context) error {
+func (p *Process) Start(ctx context.Context) error {
 	go p.clock.Start()
 	for {
 		select {

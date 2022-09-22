@@ -2,7 +2,10 @@ package trade
 
 import (
 	"context"
+	"math/rand"
+	"time"
 	"tradesim/src/prob"
+	"tradesim/src/time/clock"
 
 	"github.com/google/uuid"
 	"golang.org/x/sync/errgroup"
@@ -20,11 +23,30 @@ type Trader struct {
 	process      *prob.Process
 }
 
+type Have struct {
+	Item     Item
+	Price    float64
+	Quantity float64
+}
+
+type Want struct {
+	Item     Item
+	PriceMin float64
+	PriceMax float64
+	Quantity float64
+}
+
 func NewTrader(have []Have, want []Want) *Trader {
 	t := &Trader{
-		ID:    uuid.New(),
-		Haves: make(map[uuid.UUID]*Have, len(have)),
-		Wants: make(map[uuid.UUID]*Want, len(want)),
+		ID:           uuid.New(),
+		Haves:        make(map[uuid.UUID]*Have, len(have)),
+		Wants:        make(map[uuid.UUID]*Want, len(want)),
+		RequestSend:  make(chan Request),
+		RequestRecv:  make(chan Request),
+		ResponseSend: make(chan Response),
+		ResponseRecv: make(chan Responses),
+		Choice:       make(chan uuid.UUID),
+		process:      prob.NewProcess(prob.NewUniform(0.5), clock.NewClock(time.Second, 0)),
 	}
 	for _, h := range have {
 		t.Haves[h.Item.ID] = &h
@@ -38,26 +60,91 @@ func NewTrader(have []Have, want []Want) *Trader {
 func (t *Trader) Start(ctx context.Context) error {
 	wg, c := errgroup.WithContext(ctx)
 	wg.Go(func() error { return t.process.Start(c) })
-	wg.Go(func() error {
-		select {
-		// TODO: Send random trade request
-		case <-t.process.Event:
-		default:
-		}
-		return nil
-	})
+	wg.Go(t.sendRequest)
+	wg.Go(t.sendResponse)
+	wg.Go(t.choose)
 	return wg.Wait()
 }
 
-type Have struct {
-	Item     Item
-	Price    float64
-	Quantity float64
+func (t *Trader) sendRequest() error {
+	select {
+	case <-t.process.Event:
+		r, ok := t.randomRequest()
+		if ok {
+			t.RequestSend <- r
+		}
+	default:
+	}
+	return nil
 }
 
-type Want struct {
-	Item     Item
-	PriceMin float64
-	PriceMax float64
-	Quantity float64
+func (t *Trader) randomRequest() (Request, bool) {
+	if len(t.Wants) == 0 {
+		return Request{}, false
+	}
+	ws := make([]*Want, len(t.Wants))
+	i := 0
+	for _, v := range t.Wants {
+		ws[i] = v
+		i++
+	}
+	w := ws[rand.Intn(len(ws))]
+	return Request{
+		ID:       uuid.New(),
+		Item:     w.Item,
+		Quantity: w.Quantity,
+		Side:     SideBuy,
+	}, true
+}
+
+func (t *Trader) sendResponse() error {
+	select {
+	case req := <-t.RequestRecv:
+		resp, ok := t.response(req)
+		if ok {
+			t.ResponseSend <- resp
+		}
+	default:
+	}
+	return nil
+}
+
+func (t *Trader) response(req Request) (Response, bool) {
+	h, have := t.Haves[req.Item.ID]
+	w, want := t.Wants[req.Item.ID]
+	if !(have || want) {
+		return Response{}, false
+	}
+	r := Response{
+		ID:        uuid.New(),
+		OrderBook: OrderBook{},
+	}
+	if have {
+		r.OrderBook.Ask.Item = h.Item
+		r.OrderBook.Ask.Price = h.Price
+		r.OrderBook.Ask.Quantity = h.Quantity
+	}
+	if want {
+		r.OrderBook.Bid.Item = w.Item
+		r.OrderBook.Bid.Price = w.PriceMax
+		r.OrderBook.Bid.Quantity = w.Quantity
+	}
+	return r, true
+}
+
+func (t *Trader) choose() error {
+	select {
+	case resp := <-t.ResponseRecv:
+		t.Choice <- t.randomChoice(resp)
+	default:
+	}
+	return nil
+}
+
+func (t *Trader) randomChoice(resp Responses) uuid.UUID {
+	if len(resp) == 0 {
+		return uuid.Nil
+	}
+	r := resp[rand.Intn(len(resp))]
+	return r.ID
 }
