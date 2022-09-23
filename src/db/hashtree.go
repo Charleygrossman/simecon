@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"time"
+	"tradesim/src/trade"
 
 	"github.com/google/uuid"
 )
@@ -34,7 +35,7 @@ type node struct {
 	// hash represents the hash pointer of the node.
 	hash string
 	// txn is the transaction of the node, which is null if the node is a hash node.
-	txn *Transaction
+	txn *trade.Transaction
 }
 
 // hasTxn returns whether the node has a transaction.
@@ -169,10 +170,10 @@ type Tree struct {
 }
 
 // Insert inserts the provided transaction as a leaf node into the tree.
-func (t *Tree) Insert(txn Transaction) {
+func (t *Tree) Insert(txn *trade.Transaction) {
 	n := newNode()
-	n.txn = &txn
-	n.hash = txn.GetHash()
+	n.txn = txn
+	n.hash = txn.Hash()
 	t.insert(n)
 	t.rehash(n)
 }

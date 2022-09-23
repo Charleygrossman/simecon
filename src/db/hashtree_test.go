@@ -3,20 +3,9 @@ package db
 import (
 	"crypto/sha256"
 	"fmt"
-	"github.com/google/uuid"
 	"testing"
+	"tradesim/src/trade"
 )
-
-type testTreeTxn struct{}
-
-func (testTreeTxn) GetHash() string {
-	data := uuid.New().String()
-	return fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
-}
-
-func (testTreeTxn) GetTxnType() TxnType {
-	return TestTxnType
-}
 
 // TestInsertIncrementsSize asserts that every insertion into a tree
 // increases its size (number of nodes with transactions) by one.
@@ -24,7 +13,7 @@ func TestInsertIncrementsSize(t *testing.T) {
 	tree := NewTree()
 
 	for i := 0; i < 100; i++ {
-		tree.Insert(&testTreeTxn{})
+		tree.Insert(&trade.Transaction{})
 
 		expected := uint64(i + 1)
 		if actual := tree.Size; expected != actual {
@@ -40,7 +29,7 @@ func TestInsertMaintainsBinarySearchProperty(t *testing.T) {
 	tree := NewTree()
 
 	for i := 0; i < 100; i++ {
-		tree.Insert(&testTreeTxn{})
+		tree.Insert(&trade.Transaction{})
 
 		if ok := traverse(tree.Root, func(n *node) bool {
 			if n != nil {
@@ -65,7 +54,7 @@ func TestInsertMaintainsHashPointers(t *testing.T) {
 	tree := NewTree()
 
 	for i := 0; i < 100; i++ {
-		tree.Insert(&testTreeTxn{})
+		tree.Insert(&trade.Transaction{})
 
 		if ok := traverse(tree.Root, func(n *node) bool {
 			if n != nil && !n.hasTxn() {
@@ -100,7 +89,7 @@ func TestNoAdjacentLeftLeaningRedLinks(t *testing.T) {
 	tree := NewTree()
 
 	for i := 0; i < 100; i++ {
-		tree.Insert(&testTreeTxn{})
+		tree.Insert(&trade.Transaction{})
 
 		if ok := traverse(tree.Root, func(n *node) bool {
 			if n != nil {
@@ -124,7 +113,7 @@ func TestNoRightLeaningRedLinks(t *testing.T) {
 	tree := NewTree()
 
 	for i := 0; i < 100; i++ {
-		tree.Insert(&testTreeTxn{})
+		tree.Insert(&trade.Transaction{})
 
 		if ok := traverse(tree.Root, func(n *node) bool {
 			if n != nil {

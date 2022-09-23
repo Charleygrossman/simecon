@@ -19,7 +19,7 @@ type Trader struct {
 	RequestRecv  chan Request
 	ResponseSend chan Response
 	ResponseRecv chan Responses
-	Choice       chan uuid.UUID
+	Choice       chan Response
 	process      *prob.Process
 }
 
@@ -45,7 +45,7 @@ func NewTrader(have []Have, want []Want) *Trader {
 		RequestRecv:  make(chan Request),
 		ResponseSend: make(chan Response),
 		ResponseRecv: make(chan Responses),
-		Choice:       make(chan uuid.UUID),
+		Choice:       make(chan Response),
 		process:      prob.NewProcess(prob.NewUniform(0.5), clock.NewClock(time.Second, 0)),
 	}
 	for _, h := range have {
@@ -134,17 +134,19 @@ func (t *Trader) response(req Request) (Response, bool) {
 
 func (t *Trader) choose() error {
 	select {
-	case resp := <-t.ResponseRecv:
-		t.Choice <- t.randomChoice(resp)
+	case resps := <-t.ResponseRecv:
+		c, ok := t.randomChoice(resps)
+		if ok {
+			t.Choice <- c
+		}
 	default:
 	}
 	return nil
 }
 
-func (t *Trader) randomChoice(resp Responses) uuid.UUID {
+func (t *Trader) randomChoice(resp Responses) (Response, bool) {
 	if len(resp) == 0 {
-		return uuid.Nil
+		return Response{}, false
 	}
-	r := resp[rand.Intn(len(resp))]
-	return r.ID
+	return resp[rand.Intn(len(resp))], true
 }

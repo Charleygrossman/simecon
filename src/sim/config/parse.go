@@ -23,7 +23,7 @@ func parseTrader(config TraderConfig) *trade.Trader {
 	return trade.NewTrader(config.Haves, config.Wants)
 }
 
-func ParseProcess(config ProcessConfig) prob.Process {
+func ParseProcess(config ProcessConfig) *prob.Process {
 	return prob.NewProcess(
 		parseDistribution(config.Distrib),
 		parseClock(config.Clock),

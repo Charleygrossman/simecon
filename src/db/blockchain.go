@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"strings"
 	"time"
+	"tradesim/src/trade"
 )
 
 // maxint64 is a pointer to the largest int64 value.
@@ -48,7 +49,7 @@ func (b *block) setPrev() bool {
 
 // NewBlock returns a block initialized with
 // a transaction tree with the provided transaction.
-func NewBlock(txn Transaction) *block {
+func NewBlock(txn *trade.Transaction) *block {
 	t := NewTree()
 	t.Insert(txn)
 	return &block{
