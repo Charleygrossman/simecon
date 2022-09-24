@@ -10,14 +10,25 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type Exchange struct {
-	DB      *db.Blockchain
-	Markets map[uuid.UUID]Market
-}
-
 type Market struct {
 	Item       trade.Item
 	TraderByID map[uuid.UUID]*trade.Trader
+}
+
+func NewMarket(item trade.Item, traders ...*trade.Trader) Market {
+	m := Market{
+		Item:       item,
+		TraderByID: make(map[uuid.UUID]*trade.Trader, len(traders)),
+	}
+	for _, t := range traders {
+		m.TraderByID[t.ID] = t
+	}
+	return m
+}
+
+type Exchange struct {
+	DB      *db.Blockchain
+	Markets map[uuid.UUID]Market
 }
 
 func NewExchange(markets []Market) *Exchange {

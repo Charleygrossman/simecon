@@ -11,18 +11,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type Trader struct {
-	ID           uuid.UUID
-	Haves        map[uuid.UUID]*Have
-	Wants        map[uuid.UUID]*Want
-	RequestSend  chan Request
-	RequestRecv  chan Request
-	ResponseSend chan Response
-	ResponseRecv chan Responses
-	Choice       chan Response
-	process      *prob.Process
-}
-
 type Have struct {
 	Item     Item
 	Price    float64
@@ -36,11 +24,23 @@ type Want struct {
 	Quantity float64
 }
 
-func NewTrader(have []Have, want []Want) *Trader {
+type Trader struct {
+	ID           uuid.UUID
+	Haves        map[uuid.UUID]*Have
+	Wants        map[uuid.UUID]*Want
+	RequestSend  chan Request
+	RequestRecv  chan Request
+	ResponseSend chan Response
+	ResponseRecv chan Responses
+	Choice       chan Response
+	process      *prob.Process
+}
+
+func NewTrader(haves []Have, wants []Want) *Trader {
 	t := &Trader{
 		ID:           uuid.New(),
-		Haves:        make(map[uuid.UUID]*Have, len(have)),
-		Wants:        make(map[uuid.UUID]*Want, len(want)),
+		Haves:        make(map[uuid.UUID]*Have, len(haves)),
+		Wants:        make(map[uuid.UUID]*Want, len(wants)),
 		RequestSend:  make(chan Request),
 		RequestRecv:  make(chan Request),
 		ResponseSend: make(chan Response),
@@ -48,10 +48,10 @@ func NewTrader(have []Have, want []Want) *Trader {
 		Choice:       make(chan Response),
 		process:      prob.NewProcess(prob.NewUniform(0.5), clock.NewClock(time.Second, 0)),
 	}
-	for _, h := range have {
+	for _, h := range haves {
 		t.Haves[h.Item.ID] = &h
 	}
-	for _, w := range want {
+	for _, w := range wants {
 		t.Wants[w.Item.ID] = &w
 	}
 	return t

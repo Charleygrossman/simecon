@@ -14,6 +14,13 @@ type Item struct {
 	Name string
 }
 
+func NewItem(name string) Item {
+	return Item{
+		ID:   uuid.New(),
+		Name: name,
+	}
+}
+
 type Side uint8
 
 const (

@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"strings"
 	"tradesim/src/prob"
-	"tradesim/src/trade"
 	"tradesim/src/util"
 
 	"gopkg.in/yaml.v3"
@@ -26,6 +25,39 @@ var (
 	ErrInvalid    = errors.New("invalid simulation configuration")
 	ErrOutOfRange = errors.New("value out of range")
 )
+
+type ExchangeConfig struct {
+	Markets []MarketConfig `yaml:"markets"`
+}
+
+type MarketConfig struct {
+	ItemID    string   `yaml:"item_id"`
+	TraderIDs []string `yaml:"trader_ids"`
+}
+
+type ItemConfig struct {
+	ID   string `yaml:"id"`
+	Name string `yaml:"name"`
+}
+
+type TraderConfig struct {
+	ID    string       `yaml:"id"`
+	Haves []HaveConfig `yaml:"haves"`
+	Wants []WantConfig `yaml:"wants"`
+}
+
+type HaveConfig struct {
+	ItemID   string  `yaml:"item_id"`
+	Price    float64 `yaml:"price"`
+	Quantity float64 `yaml:"quantity"`
+}
+
+type WantConfig struct {
+	ItemID   string  `yaml:"item_id"`
+	PriceMin float64 `yaml:"price_min"`
+	PriceMax float64 `yaml:"price_max"`
+	Quantity float64 `yaml:"quantity"`
+}
 
 type ProcessConfig struct {
 	Clock   ClockConfig   `yaml:"clock"`
@@ -47,14 +79,10 @@ type DistribConfig struct {
 	Lambda float64 `yaml:"lambda"`
 }
 
-type TraderConfig struct {
-	Haves []trade.Have `yaml:"haves"`
-	Wants []trade.Want `yaml:"wants"`
-}
-
 type SimConfig struct {
-	Process ProcessConfig  `yaml:"process"`
-	Traders []TraderConfig `yaml:"traders"`
+	Items    []ItemConfig   `yaml:"items"`
+	Traders  []TraderConfig `yaml:"traders"`
+	Exchange ExchangeConfig `yaml:"exchange"`
 }
 
 func NewSimConfig(filepath string) (SimConfig, error) {
@@ -82,7 +110,7 @@ func parseSimConfig(filepath string) (SimConfig, error) {
 }
 
 func validateSimConfig(config SimConfig) error {
-	return validateProcessConfig(config.Process)
+	return nil
 }
 
 func validateProcessConfig(config ProcessConfig) error {

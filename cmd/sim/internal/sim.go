@@ -1,19 +1,30 @@
 package internal
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"tradesim/src/exchange"
+	"tradesim/src/sim/config"
 )
 
 var ErrSim = errors.New("failed to run simulation")
 
 func Simulate(inFilepath, outFilepath string) error {
-	if err := simulate(inFilepath, outFilepath); err != nil {
+	exchange, err := parseExchange(inFilepath)
+	if err != nil {
 		return fmt.Errorf("%w: %v", ErrSim, err)
 	}
-	return nil
+	return exchange.Start(context.Background())
 }
 
-func simulate(in, out string) error {
-	return errors.New("not implemented")
+func parseExchange(inFilepath string) (*exchange.Exchange, error) {
+	c, err := config.NewSimConfig(inFilepath)
+	if err != nil {
+		return nil, err
+	}
+	items := config.ParseItems(c.Items)
+	traders := config.ParseTraders(c.Traders, items)
+	exchange := config.ParseExchange(c.Exchange, items, traders)
+	return exchange, nil
 }
