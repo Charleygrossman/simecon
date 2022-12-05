@@ -67,15 +67,13 @@ func (t *Trader) Start(ctx context.Context) error {
 }
 
 func (t *Trader) sendRequest() error {
-	select {
-	case <-t.process.Event:
+	for {
+		<-t.process.Event
 		r, ok := t.randomRequest()
 		if ok {
 			t.RequestSend <- r
 		}
-	default:
 	}
-	return nil
 }
 
 func (t *Trader) randomRequest() (Request, bool) {
@@ -91,6 +89,7 @@ func (t *Trader) randomRequest() (Request, bool) {
 	w := ws[rand.Intn(len(ws))]
 	return Request{
 		ID:       uuid.New(),
+		TraderID: t.ID,
 		Item:     w.Item,
 		Quantity: w.Quantity,
 		Side:     SideBuy,
@@ -98,15 +97,13 @@ func (t *Trader) randomRequest() (Request, bool) {
 }
 
 func (t *Trader) sendResponse() error {
-	select {
-	case req := <-t.RequestRecv:
+	for {
+		req := <-t.RequestRecv
 		resp, ok := t.response(req)
 		if ok {
 			t.ResponseSend <- resp
 		}
-	default:
 	}
-	return nil
 }
 
 func (t *Trader) response(req Request) (Response, bool) {
@@ -117,6 +114,8 @@ func (t *Trader) response(req Request) (Response, bool) {
 	}
 	r := Response{
 		ID:        uuid.New(),
+		Request:   req,
+		TraderID:  t.ID,
 		OrderBook: OrderBook{},
 	}
 	if have {
@@ -133,15 +132,13 @@ func (t *Trader) response(req Request) (Response, bool) {
 }
 
 func (t *Trader) choose() error {
-	select {
-	case resps := <-t.ResponseRecv:
+	for {
+		resps := <-t.ResponseRecv
 		c, ok := t.randomChoice(resps)
 		if ok {
 			t.Choice <- c
 		}
-	default:
 	}
-	return nil
 }
 
 func (t *Trader) randomChoice(resp Responses) (Response, bool) {

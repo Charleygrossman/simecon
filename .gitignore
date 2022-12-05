@@ -17,5 +17,8 @@
 # Binaries
 bin/
 
+# Configuration
+*.yaml
+
 # macOS
 .DS_Store

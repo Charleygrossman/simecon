@@ -3,28 +3,27 @@ package internal
 import (
 	"context"
 	"errors"
-	"fmt"
-	"tradesim/src/exchange"
 	"tradesim/src/sim/config"
+
+	"golang.org/x/sync/errgroup"
 )
 
 var ErrSim = errors.New("failed to run simulation")
 
 func Simulate(inFilepath, outFilepath string) error {
-	exchange, err := parseExchange(inFilepath)
+	cfg, err := config.NewSimConfig(inFilepath)
 	if err != nil {
-		return fmt.Errorf("%w: %v", ErrSim, err)
+		return err
 	}
-	return exchange.Start(context.Background())
-}
+	items := config.ParseItems(cfg.Items)
+	traders := config.ParseTraders(cfg.Traders, items)
+	exchange := config.ParseExchange(cfg.Exchange, items, traders)
 
-func parseExchange(inFilepath string) (*exchange.Exchange, error) {
-	c, err := config.NewSimConfig(inFilepath)
-	if err != nil {
-		return nil, err
+	wg, ctx := errgroup.WithContext(context.Background())
+	for _, t := range traders {
+		_t := t
+		wg.Go(func() error { return _t.Start(ctx) })
 	}
-	items := config.ParseItems(c.Items)
-	traders := config.ParseTraders(c.Traders, items)
-	exchange := config.ParseExchange(c.Exchange, items, traders)
-	return exchange, nil
+	wg.Go(func() error { return exchange.Start(ctx) })
+	return wg.Wait()
 }

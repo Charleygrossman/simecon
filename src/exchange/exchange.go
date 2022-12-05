@@ -3,6 +3,7 @@ package exchange
 import (
 	"context"
 	"fmt"
+	"sync"
 	"tradesim/src/db"
 	"tradesim/src/trade"
 
@@ -29,6 +30,7 @@ func NewMarket(item trade.Item, traders ...*trade.Trader) Market {
 type Exchange struct {
 	DB      *db.Blockchain
 	Markets map[uuid.UUID]Market
+	dbLock  sync.Mutex
 }
 
 func NewExchange(markets []Market) *Exchange {
@@ -49,6 +51,7 @@ func (e *Exchange) Start(ctx context.Context) error {
 			_t := t
 			wg.Go(func() error { return e.recvRequest(_t) })
 			wg.Go(func() error { return e.recvResponse(_t) })
+			wg.Go(func() error { return e.sendResponse(_t) })
 			wg.Go(func() error { return e.recvChoice(_t) })
 		}
 	}
@@ -56,8 +59,8 @@ func (e *Exchange) Start(ctx context.Context) error {
 }
 
 func (e *Exchange) recvRequest(t *trade.Trader) error {
-	select {
-	case r := <-t.RequestSend:
+	for {
+		r := <-t.RequestSend
 		m, ok := e.Markets[r.Item.ID]
 		if !ok {
 			return fmt.Errorf("no market found for item: %+v", r.Item)
@@ -65,25 +68,54 @@ func (e *Exchange) recvRequest(t *trade.Trader) error {
 		for _, t := range m.TraderByID {
 			t.RequestRecv <- r
 		}
-	default:
 	}
-	return nil
 }
 
 func (e *Exchange) recvResponse(t *trade.Trader) error {
-	return nil
+	for {
+		resp := <-t.ResponseRecv
+		r := resp[0]
+		m, ok := e.Markets[r.Request.Item.ID]
+		if !ok {
+			return fmt.Errorf("no market found for item: %+v", r.Request.Item.ID)
+		}
+		for _, t := range m.TraderByID {
+			if t.ID == r.Request.TraderID {
+				t.ResponseRecv <- resp
+			}
+		}
+	}
+}
+
+func (e *Exchange) sendResponse(t *trade.Trader) error {
+	for {
+		resp := <-t.ResponseSend
+		m, ok := e.Markets[resp.Request.Item.ID]
+		if !ok {
+			return fmt.Errorf("no market found for item: %+v", resp.Request.Item.ID)
+		}
+		r := []trade.Response{resp}
+		for _, t := range m.TraderByID {
+			if t.ID == resp.Request.TraderID {
+				t.ResponseRecv <- r
+			}
+		}
+	}
 }
 
 func (e *Exchange) recvChoice(t *trade.Trader) error {
-	select {
-	case c := <-t.Choice:
-		e.execute(c)
-	default:
+	for {
+		c := <-t.Choice
+		if err := e.execute(c); err != nil {
+			return err
+		}
 	}
-	return nil
 }
 
 func (e *Exchange) execute(choice trade.Response) error {
+	e.dbLock.Lock()
+	defer e.dbLock.Unlock()
+
 	t := trade.Transaction{
 		ID: uuid.New(),
 		Credit: trade.TransactionRecord{
