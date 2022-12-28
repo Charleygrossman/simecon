@@ -19,18 +19,18 @@ type Process struct {
 
 func NewProcess(distribution Distribution, clock clock.Clock) *Process {
 	return &Process{
-		Event:        make(chan time.Time),
+		Event:        make(chan time.Time, 8),
 		distribution: distribution,
 		clock:        clock,
 	}
 }
 
 func (p *Process) Start(ctx context.Context) error {
-	go p.clock.Start()
+	go p.clock.Start(ctx)
 	for {
 		select {
 		case <-ctx.Done():
-			return nil
+			return ctx.Err()
 		case <-p.clock.Done:
 			return nil
 		case t := <-p.clock.Tick:

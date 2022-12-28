@@ -1,6 +1,7 @@
 package clock
 
 import (
+	"context"
 	"math"
 	"time"
 )
@@ -48,11 +49,14 @@ func NewClock(frequency time.Duration, limit uint64) Clock {
 }
 
 // Start initializes and runs the clock's underlying ticker.
-func (c *Clock) Start() {
+func (c *Clock) Start(ctx context.Context) {
 	// Create a new ticker and start it.
 	c.ticker = time.NewTicker(c.frequency)
 	for {
 		select {
+		case <-ctx.Done():
+			c.stopTicker()
+			return
 		case <-c.stop:
 			c.stopTicker()
 			c.Done <- true

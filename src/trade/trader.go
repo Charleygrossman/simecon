@@ -11,12 +11,18 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+// Have represents an item that a trader holds,
+// along with their evaluation of its unit price
+// and how many units they hold.
 type Have struct {
 	Item     Item
 	Price    float64
 	Quantity float64
 }
 
+// Want represents an item that a trader would like to hold,
+// along with their evaluation of its minimum and maximum
+// unit price and how many units they would like to hold.
 type Want struct {
 	Item     Item
 	PriceMin float64
@@ -24,6 +30,8 @@ type Want struct {
 	Quantity float64
 }
 
+// Trader represents an entity participating
+// in the exchange of items with other traders.
 type Trader struct {
 	ID           uuid.UUID
 	Haves        map[uuid.UUID]*Have
@@ -41,12 +49,13 @@ func NewTrader(haves []Have, wants []Want) *Trader {
 		ID:           uuid.New(),
 		Haves:        make(map[uuid.UUID]*Have, len(haves)),
 		Wants:        make(map[uuid.UUID]*Want, len(wants)),
-		RequestSend:  make(chan Request),
-		RequestRecv:  make(chan Request),
-		ResponseSend: make(chan Response),
-		ResponseRecv: make(chan Responses),
-		Choice:       make(chan Response),
-		process:      prob.NewProcess(prob.NewUniform(0.5), clock.NewClock(time.Second, 0)),
+		RequestSend:  make(chan Request, 8),
+		RequestRecv:  make(chan Request, 8),
+		ResponseSend: make(chan Response, 8),
+		ResponseRecv: make(chan Responses, 8),
+		Choice:       make(chan Response, 8),
+		// TODO: configurable
+		process: prob.NewProcess(prob.NewUniform(0.2), clock.NewClock(time.Second, 0)),
 	}
 	for _, h := range haves {
 		t.Haves[h.Item.ID] = &h
@@ -60,20 +69,23 @@ func NewTrader(haves []Have, wants []Want) *Trader {
 func (t *Trader) Start(ctx context.Context) error {
 	wg, c := errgroup.WithContext(ctx)
 	wg.Go(func() error { return t.process.Start(c) })
-	wg.Go(t.sendRequest)
-	wg.Go(t.sendResponse)
-	wg.Go(t.choose)
+	wg.Go(func() error { return t.sendRequest(c) })
+	wg.Go(func() error { return t.sendResponse(c) })
+	wg.Go(func() error { return t.sendChoice(c) })
 	return wg.Wait()
 }
 
-func (t *Trader) sendRequest() error {
-	for {
-		<-t.process.Event
+func (t *Trader) sendRequest(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-t.process.Event:
 		r, ok := t.randomRequest()
 		if ok {
 			t.RequestSend <- r
 		}
 	}
+	return nil
 }
 
 func (t *Trader) randomRequest() (Request, bool) {
@@ -96,14 +108,17 @@ func (t *Trader) randomRequest() (Request, bool) {
 	}, true
 }
 
-func (t *Trader) sendResponse() error {
-	for {
-		req := <-t.RequestRecv
+func (t *Trader) sendResponse(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case req := <-t.RequestRecv:
 		resp, ok := t.response(req)
 		if ok {
 			t.ResponseSend <- resp
 		}
 	}
+	return nil
 }
 
 func (t *Trader) response(req Request) (Response, bool) {
@@ -131,14 +146,17 @@ func (t *Trader) response(req Request) (Response, bool) {
 	return r, true
 }
 
-func (t *Trader) choose() error {
-	for {
-		resps := <-t.ResponseRecv
+func (t *Trader) sendChoice(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case resps := <-t.ResponseRecv:
 		c, ok := t.randomChoice(resps)
 		if ok {
 			t.Choice <- c
 		}
 	}
+	return nil
 }
 
 func (t *Trader) randomChoice(resp Responses) (Response, bool) {

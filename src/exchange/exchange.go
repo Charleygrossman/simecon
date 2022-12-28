@@ -11,6 +11,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+// Market represents a tradable item on an exchange,
+// and a set of traders participating in the market.
 type Market struct {
 	Item       trade.Item
 	TraderByID map[uuid.UUID]*trade.Trader
@@ -27,16 +29,18 @@ func NewMarket(item trade.Item, traders ...*trade.Trader) Market {
 	return m
 }
 
+// Exchange represents a centralized item exchange that facilitates
+// the interactions between traders participating in a set of markets.
 type Exchange struct {
-	DB      *db.Blockchain
 	Markets map[uuid.UUID]Market
+	DB      *db.Blockchain
 	dbLock  sync.Mutex
 }
 
 func NewExchange(markets []Market) *Exchange {
 	e := &Exchange{
-		DB:      db.NewBlockchain(),
 		Markets: make(map[uuid.UUID]Market, len(markets)),
+		DB:      db.NewBlockchain(),
 	}
 	for _, m := range markets {
 		e.Markets[m.Item.ID] = m
@@ -45,22 +49,24 @@ func NewExchange(markets []Market) *Exchange {
 }
 
 func (e *Exchange) Start(ctx context.Context) error {
-	wg, _ := errgroup.WithContext(ctx)
+	wg, c := errgroup.WithContext(ctx)
 	for _, m := range e.Markets {
 		for _, t := range m.TraderByID {
 			_t := t
-			wg.Go(func() error { return e.recvRequest(_t) })
-			wg.Go(func() error { return e.recvResponse(_t) })
-			wg.Go(func() error { return e.sendResponse(_t) })
-			wg.Go(func() error { return e.recvChoice(_t) })
+			wg.Go(func() error { return e.recvRequest(c, _t) })
+			wg.Go(func() error { return e.recvResponse(c, _t) })
+			wg.Go(func() error { return e.sendResponse(c, _t) })
+			wg.Go(func() error { return e.recvChoice(c, _t) })
 		}
 	}
 	return wg.Wait()
 }
 
-func (e *Exchange) recvRequest(t *trade.Trader) error {
-	for {
-		r := <-t.RequestSend
+func (e *Exchange) recvRequest(ctx context.Context, t *trade.Trader) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case r := <-t.RequestSend:
 		m, ok := e.Markets[r.Item.ID]
 		if !ok {
 			return fmt.Errorf("no market found for item: %+v", r.Item)
@@ -69,11 +75,14 @@ func (e *Exchange) recvRequest(t *trade.Trader) error {
 			t.RequestRecv <- r
 		}
 	}
+	return nil
 }
 
-func (e *Exchange) recvResponse(t *trade.Trader) error {
-	for {
-		resp := <-t.ResponseRecv
+func (e *Exchange) recvResponse(ctx context.Context, t *trade.Trader) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case resp := <-t.ResponseRecv:
 		r := resp[0]
 		m, ok := e.Markets[r.Request.Item.ID]
 		if !ok {
@@ -85,11 +94,14 @@ func (e *Exchange) recvResponse(t *trade.Trader) error {
 			}
 		}
 	}
+	return nil
 }
 
-func (e *Exchange) sendResponse(t *trade.Trader) error {
-	for {
-		resp := <-t.ResponseSend
+func (e *Exchange) sendResponse(ctx context.Context, t *trade.Trader) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case resp := <-t.ResponseSend:
 		m, ok := e.Markets[resp.Request.Item.ID]
 		if !ok {
 			return fmt.Errorf("no market found for item: %+v", resp.Request.Item.ID)
@@ -101,15 +113,19 @@ func (e *Exchange) sendResponse(t *trade.Trader) error {
 			}
 		}
 	}
+	return nil
 }
 
-func (e *Exchange) recvChoice(t *trade.Trader) error {
-	for {
-		c := <-t.Choice
+func (e *Exchange) recvChoice(ctx context.Context, t *trade.Trader) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case c := <-t.Choice:
 		if err := e.execute(c); err != nil {
 			return err
 		}
 	}
+	return nil
 }
 
 func (e *Exchange) execute(choice trade.Response) error {

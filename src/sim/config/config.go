@@ -80,6 +80,7 @@ type DistribConfig struct {
 }
 
 type SimConfig struct {
+	Duration int64          `yaml:"duration_seconds"`
 	Items    []ItemConfig   `yaml:"items"`
 	Traders  []TraderConfig `yaml:"traders"`
 	Exchange ExchangeConfig `yaml:"exchange"`

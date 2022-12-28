@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"math/big"
+	"os"
 	"strings"
 	"time"
 	"tradesim/src/trade"
@@ -16,13 +17,24 @@ var maxint64 = big.NewInt(int64(^uint64(0) >> 1))
 // block represents a block within a blockchain.
 type block struct {
 	// createdOn represents the time of the block's initialization.
-	createdOn string
+	createdOn time.Time
 	// prev represents a hash pointer to the previous block in the blockchain.
 	prev string
 	// prevP is a pointer to the previous block in the blockchain.
 	prevP *block
 	// txnTree is the hash tree of transactions stored in the block.
 	txnTree *Tree
+}
+
+// NewBlock returns a block initialized with
+// a transaction tree with the provided transaction.
+func NewBlock(txn *trade.Transaction) *block {
+	t := NewTree()
+	t.Insert(txn)
+	return &block{
+		createdOn: time.Now().UTC(),
+		txnTree:   t,
+	}
 }
 
 // setPrev sets the block's hash pointer to the hash of
@@ -41,20 +53,9 @@ func (b *block) setPrev() bool {
 			return false
 		}
 		p := b.prevP
-		data := p.createdOn + p.txnTree.Root.hash + nonce.String()
+		data := p.createdOn.String() + p.txnTree.Root.hash + nonce.String()
 		b.prev = fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
 		return true
-	}
-}
-
-// NewBlock returns a block initialized with
-// a transaction tree with the provided transaction.
-func NewBlock(txn *trade.Transaction) *block {
-	t := NewTree()
-	t.Insert(txn)
-	return &block{
-		createdOn: time.Now().UTC().String(),
-		txnTree:   t,
 	}
 }
 
@@ -74,6 +75,31 @@ type Blockchain struct {
 	head *block
 	// tail is the last block in the blockchain.
 	tail *block
+}
+
+// NewBlockchain returns a blockchain initialized with a genesis block.
+func NewBlockchain() *Blockchain {
+	gen := &block{
+		createdOn: time.Now().UTC(),
+		prev:      strings.Repeat("0", 64),
+		txnTree:   NewTree(),
+	}
+	return &Blockchain{head: gen, tail: gen}
+}
+
+func (b *Blockchain) Write(filepath string) error {
+	f, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	for curr := b.tail; curr != nil; {
+		if _, err := f.WriteString(curr.txnTree.String() + "\n"); err != nil {
+			return err
+		}
+		curr = curr.prevP
+	}
+	return nil
 }
 
 // Append appends a block to the tail-end of the blockchain.
@@ -99,14 +125,4 @@ func (b *Blockchain) Len() int {
 		curr = curr.prevP
 	}
 	return count
-}
-
-// NewBlockchain returns a blockchain initialized with a genesis block.
-func NewBlockchain() *Blockchain {
-	gen := &block{
-		createdOn: time.Now().UTC().String(),
-		prev:      strings.Repeat("0", 64),
-		txnTree:   NewTree(),
-	}
-	return &Blockchain{head: gen, tail: gen}
 }

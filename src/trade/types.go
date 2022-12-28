@@ -77,6 +77,26 @@ type TransactionRecord struct {
 	Quantity float64
 }
 
+func (t *Transaction) String() string {
+	var s strings.Builder
+
+	s.WriteString(fmt.Sprintf("transaction id=%s ", t.ID))
+
+	s.WriteString(fmt.Sprintf("credit trader id=%s ", t.Credit.TraderID))
+	s.WriteString(fmt.Sprintf("credit item id=%s ", t.Credit.Item.ID))
+	s.WriteString(fmt.Sprintf("credit item name=%s ", t.Credit.Item.Name))
+	s.WriteString(fmt.Sprintf("credit price=%f ", t.Credit.Price))
+	s.WriteString(fmt.Sprintf("credit quantity=%f ", t.Credit.Quantity))
+
+	s.WriteString(fmt.Sprintf("debit trader id=%s ", t.Debit.TraderID))
+	s.WriteString(fmt.Sprintf("debit item id=%s ", t.Debit.Item.ID))
+	s.WriteString(fmt.Sprintf("debit item name=%s ", t.Debit.Item.Name))
+	s.WriteString(fmt.Sprintf("debit price=%f ", t.Debit.Price))
+	s.WriteString(fmt.Sprintf("debit quantity=%f ", t.Debit.Quantity))
+
+	return strings.TrimSpace(s.String())
+}
+
 func (t *Transaction) Hash() string {
 	var s strings.Builder
 

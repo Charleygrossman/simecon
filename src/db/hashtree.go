@@ -23,7 +23,7 @@ type node struct {
 	// key is the value keyed on when performing binary search within the node's tree.
 	key uuid.UUID
 	// createdOn represents the time of the node's initialization.
-	createdOn string
+	createdOn time.Time
 	// color determines whether the node has a red or black link to its parent node.
 	color color
 	// parentP is a pointer to the node's parent node.
@@ -36,6 +36,15 @@ type node struct {
 	hash string
 	// txn is the transaction of the node, which is null if the node is a hash node.
 	txn *trade.Transaction
+}
+
+// newNode returns a node initialized
+// without a hash or transaction.
+func newNode() *node {
+	return &node{
+		key:       uuid.New(),
+		createdOn: time.Now().UTC(),
+	}
 }
 
 // hasTxn returns whether the node has a transaction.
@@ -152,21 +161,43 @@ func (n *node) rotateRight() *node {
 	return x
 }
 
-// newNode returns a node initialized
-// without a hash or transaction.
-func newNode() *node {
-	return &node{
-		key:       uuid.New(),
-		createdOn: time.Now().UTC().String(),
-	}
-}
-
 // Tree is a balanced hash tree of transactions.
 type Tree struct {
 	// Root is the root hash node of the tree.
 	Root *node
 	// Size is the number of nodes with transactions in the tree.
 	Size uint64
+}
+
+// NewTree returns a tree initialized with
+// a root node without a hash or transaction.
+func NewTree() *Tree {
+	return &Tree{
+		Root: &node{
+			key:       uuid.New(),
+			createdOn: time.Now().UTC(),
+		},
+	}
+}
+
+func (t *Tree) String() string {
+	var firstTxn *trade.Transaction
+	l, r := t.Root.leftP, t.Root.rightP
+	if l != nil && r != nil {
+		if l.createdOn.Before(r.createdOn) {
+			firstTxn = l.txn
+		} else {
+			firstTxn = r.txn
+		}
+	} else if l != nil {
+		firstTxn = l.txn
+	} else if r != nil {
+		firstTxn = r.txn
+	}
+	return fmt.Sprintf(
+		"tree size=%d root hash=%s first transaction=[%s]",
+		t.Size, t.Root.hash, firstTxn,
+	)
 }
 
 // Insert inserts the provided transaction as a leaf node into the tree.
@@ -280,16 +311,5 @@ func (t *Tree) rehash(n *node) {
 			curr.hash = fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
 		}
 		curr = curr.parentP
-	}
-}
-
-// NewTree returns a tree initialized with
-// a root node without a hash or transaction.
-func NewTree() *Tree {
-	return &Tree{
-		Root: &node{
-			key:       uuid.New(),
-			createdOn: time.Now().UTC().String(),
-		},
 	}
 }

@@ -3,6 +3,8 @@ package internal
 import (
 	"context"
 	"errors"
+
+	"time"
 	"tradesim/src/sim/config"
 
 	"golang.org/x/sync/errgroup"
@@ -15,15 +17,25 @@ func Simulate(inFilepath, outFilepath string) error {
 	if err != nil {
 		return err
 	}
+
 	items := config.ParseItems(cfg.Items)
 	traders := config.ParseTraders(cfg.Traders, items)
 	exchange := config.ParseExchange(cfg.Exchange, items, traders)
 
-	wg, ctx := errgroup.WithContext(context.Background())
+	ctx := context.Background()
+	if cfg.Duration > 0 {
+		c, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.Duration)*time.Second)
+		ctx = c
+		defer cancel()
+	}
+	wg, c := errgroup.WithContext(ctx)
 	for _, t := range traders {
 		_t := t
-		wg.Go(func() error { return _t.Start(ctx) })
+		wg.Go(func() error { return _t.Start(c) })
 	}
-	wg.Go(func() error { return exchange.Start(ctx) })
-	return wg.Wait()
+	wg.Go(func() error { return exchange.Start(c) })
+	if err := wg.Wait(); err != nil && !errors.Is(err, context.DeadlineExceeded) {
+		return err
+	}
+	return exchange.DB.Write(outFilepath)
 }
